@@ -9,8 +9,8 @@ import torch
 from torch.utils.data import Dataset
 
 import config
-from src.audio_utils import load_audio, pad_or_crop
-from src.features import waveform_to_mel
+from src.audio_utils import load_audio, prepare_waveform
+from src.features import waveform_to_features
 
 
 class ManifestMelDataset(Dataset):
@@ -20,7 +20,6 @@ class ManifestMelDataset(Dataset):
         self.df = df[(df["split"] == split) & (df["Emotion"].isin(config.EMOTIONS))].reset_index(drop=True)
         self.use_cache = use_cache
         self.split = split
-        self.target_len = int(config.MAX_DURATION * config.SAMPLE_RATE)
         self.cache_root = config.CACHE_DIR / "ravdess" / split
         if len(self.df) == 0:
             raise FileNotFoundError(f"No rows for split={split} in {manifest_csv}")
@@ -36,10 +35,9 @@ class ManifestMelDataset(Dataset):
         if self.use_cache and cache.exists():
             mel = np.load(cache)
         else:
-            audio = load_audio(Path(row["path"]))
-            audio = pad_or_crop(audio, self.target_len)
-            mel = waveform_to_mel(audio)
+            audio = prepare_waveform(load_audio(Path(row["path"])))
+            mel = waveform_to_features(audio)
             if self.use_cache:
                 cache.parent.mkdir(parents=True, exist_ok=True)
                 np.save(cache, mel)
-        return torch.from_numpy(mel).unsqueeze(0), torch.tensor(label, dtype=torch.long), clip_id
+        return torch.from_numpy(np.asarray(mel, dtype=np.float32)), torch.tensor(label, dtype=torch.long), clip_id

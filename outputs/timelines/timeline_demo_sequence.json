@@ -1,0 +1,151 @@
+{
+  "tag": "demo_sequence",
+  "duration_sec": 11.0438125,
+  "window_predictions": [
+    {
+      "time": 0.0,
+      "emotion": "disgust",
+      "smoothed": "disgust",
+      "confidence": 0.548
+    },
+    {
+      "time": 1.0,
+      "emotion": "sadness",
+      "smoothed": "disgust",
+      "confidence": 0.359
+    },
+    {
+      "time": 2.0,
+      "emotion": "neutral",
+      "smoothed": "sadness",
+      "confidence": 0.608
+    },
+    {
+      "time": 3.0,
+      "emotion": "sadness",
+      "smoothed": "disgust",
+      "confidence": 0.631
+    },
+    {
+      "time": 4.0,
+      "emotion": "disgust",
+      "smoothed": "anger",
+      "confidence": 0.575
+    },
+    {
+      "time": 5.0,
+      "emotion": "anger",
+      "smoothed": "anger",
+      "confidence": 0.548
+    },
+    {
+      "time": 6.0,
+      "emotion": "surprise",
+      "smoothed": "surprise",
+      "confidence": 0.56
+    },
+    {
+      "time": 7.0,
+      "emotion": "surprise",
+      "smoothed": "surprise",
+      "confidence": 0.368
+    },
+    {
+      "time": 8.0,
+      "emotion": "disgust",
+      "smoothed": "disgust",
+      "confidence": 0.89
+    },
+    {
+      "time": 9.0,
+      "emotion": "disgust",
+      "smoothed": "disgust",
+      "confidence": 0.87
+    },
+    {
+      "time": 9.04,
+      "emotion": "disgust",
+      "smoothed": "disgust",
+      "confidence": 0.849
+    }
+  ],
+  "timeline": [
+    {
+      "start": 0.0,
+      "end": 2.0,
+      "type": "stable",
+      "emotion": "disgust"
+    },
+    {
+      "start": 2.0,
+      "end": 2.5,
+      "type": "transition",
+      "emotion": "disgust->sadness",
+      "from": "disgust",
+      "to": "sadness"
+    },
+    {
+      "start": 2.5,
+      "end": 3.0,
+      "type": "stable",
+      "emotion": "sadness"
+    },
+    {
+      "start": 3.0,
+      "end": 3.5,
+      "type": "transition",
+      "emotion": "sadness->disgust",
+      "from": "sadness",
+      "to": "disgust"
+    },
+    {
+      "start": 3.5,
+      "end": 4.0,
+      "type": "stable",
+      "emotion": "disgust"
+    },
+    {
+      "start": 4.0,
+      "end": 4.5,
+      "type": "transition",
+      "emotion": "disgust->anger",
+      "from": "disgust",
+      "to": "anger"
+    },
+    {
+      "start": 4.5,
+      "end": 6.0,
+      "type": "stable",
+      "emotion": "anger"
+    },
+    {
+      "start": 6.0,
+      "end": 6.5,
+      "type": "transition",
+      "emotion": "anger->surprise",
+      "from": "anger",
+      "to": "surprise"
+    },
+    {
+      "start": 6.5,
+      "end": 8.0,
+      "type": "stable",
+      "emotion": "surprise"
+    },
+    {
+      "start": 8.0,
+      "end": 8.5,
+      "type": "transition",
+      "emotion": "surprise->disgust",
+      "from": "surprise",
+      "to": "disgust"
+    },
+    {
+      "start": 8.5,
+      "end": 10.04,
+      "type": "stable",
+      "emotion": "disgust"
+    }
+  ],
+  "gold_utterances": null
+}

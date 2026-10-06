@@ -62,3 +62,21 @@ def pad_or_crop(audio: np.ndarray, target_len: int) -> np.ndarray:
     out = np.zeros(target_len, dtype=np.float32)
     out[: len(audio)] = audio
     return out
+
+
+def prepare_waveform(audio: np.ndarray, sr: int = config.SAMPLE_RATE) -> np.ndarray:
+    """Crop long clips and pad only clips shorter than MIN_DURATION.
+
+    Padding every utterance to 6 seconds of silence made the model learn
+    the silence tail instead of the emotion in the speech.
+    """
+    audio = np.asarray(audio, dtype=np.float32)
+    max_len = int(config.MAX_DURATION * sr)
+    min_len = int(config.MIN_DURATION * sr)
+    if audio.size == 0:
+        return np.zeros(min_len, dtype=np.float32)
+    if len(audio) > max_len:
+        audio = audio[:max_len]
+    if len(audio) < min_len:
+        audio = np.pad(audio, (0, min_len - len(audio)))
+    return audio.astype(np.float32)

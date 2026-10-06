@@ -1,79 +1,73 @@
-# Continuous Speech Emotion Recognition with Temporal Emotion Tracking
+# Continuous Speech Emotion Recognition
 
-Complete runnable project:
-- CNN + BiLSTM window-level SER
-- Temporal tracking -> stable regions + transitions -> emotion timeline
+Audio-only emotion recognition on conversational speech, plus a timeline that shows when the emotion stays and when it changes.
 
-## Current status
+The main dataset is **MELD** (*Friends* dialogues). **RAVDESS** was only an early pipeline test.
 
-| Item | Status |
-|------|--------|
-| Code pipeline | Ready |
-| RAVDESS bootstrap train | Done (`checkpoints/best_model.pt`) |
-| Timeline demo | Done (`outputs/timeline_demo_sequence.json`) |
-| MELD full download | In progress (`data/raw/MELD.Raw.tar.gz` ~10.9 GB) |
+## Folder layout
 
-MELD is the main conversational dataset for your problem statement.  
-RAVDESS was used to finish training/demo while MELD downloads.
+```text
+config.py                 settings (sample rate, emotions, paths)
+src/                      model, features, dataset, timeline
+scripts/                  commands you run
+docs/submission/          review PDFs (introduction, diagram, algorithms)
+checkpoints/
+  best_model.pt           model used for the demo and the 49% test score
+  best_model_meld.pt      same MELD weights
+  previous/               earlier runs, including the 34% model
+outputs/
+  metrics/                accuracy, F1, and the older score files
+  timelines/              emotion timelines
+  demo/                   short demo wav
+docs/submission/          the three review PDFs
+data/
+  meld/labels/            train, dev, test CSVs
+  meld/audio/             wav clips
+  meld/raw/               original download
+  MELD_repo/              official MELD readme and code
+  ravdess/                early acted-speech set
+  cache/                  features for the current model
+  cache/legacy_mel/       older feature files, not used by the current model
+```
+
+## What the system does
+
+1. Turn each utterance into a log-mel spectrogram plus delta and delta-delta.
+2. CNN + BiLSTM predicts one of 7 emotions: anger, disgust, fear, joy, neutral, sadness, surprise.
+3. At inference, a 2-second window slides every 1 second.
+4. Weak flips are smoothed, then stable regions and short transitions are written as a timeline.
+
+Training uses one MELD label per utterance. The timeline is the extra continuous output.
 
 ## Setup
 
 ```bash
 pip install -r requirements.txt
-# ffmpeg: winget install Gyan.FFmpeg   (or imageio-ffmpeg, already in requirements)
 ```
 
-## Quick demo (already trained)
+## Commands
 
 ```bash
-python scripts/make_demo_audio.py
-python scripts/infer_timeline.py --audio outputs/demo_sequence.wav
-python scripts/evaluate.py --source ravdess --split test
-```
-
-## Full MELD training (after download completes)
-
-```bash
-# if download was interrupted:
-python scripts/download_meld.py
-
-# unpack mp4 -> wav, train, evaluate, dialogue timeline
-python scripts/finish_meld_pipeline.py
-```
-
-Or step-by-step:
-
-```bash
-python scripts/prepare_meld.py
-python scripts/train.py --source meld --epochs 15
+python scripts/train.py --source meld
 python scripts/evaluate.py --source meld --split test
 python scripts/infer_timeline.py --split test --dialogue-id 0
+python scripts/make_demo_audio.py
+python scripts/infer_timeline.py --audio outputs/demo/demo_sequence.wav
 ```
 
-## Project layout
+## MELD test results
 
-```text
-config.py
-src/
-  audio_utils.py
-  features.py
-  model.py              # CNN + BiLSTM
-  dataset.py            # MELD loader
-  manifest_dataset.py   # RAVDESS loader
-  temporal_tracking.py  # novelty: stable regions + transitions
-scripts/
-  download_meld.py
-  prepare_meld.py
-  prepare_ravdess.py
-  train.py
-  evaluate.py
-  infer_timeline.py
-  make_demo_audio.py
-  finish_meld_pipeline.py
-```
+| Run | Accuracy | Weighted F1 | Where |
+|-----|----------|-------------|--------|
+| First model | 0.34 | 0.29 | `outputs/metrics/test_metrics_previous.json` |
+| Current model | **0.49** | **0.36** | `outputs/metrics/test_metrics.json` |
 
-## Viva note
+Always guessing neutral scores about **0.48**, because neutral is almost half of MELD test. The current model is just above that line. Neutral recall is high. Anger is partly recognized. Joy, fear, disgust, and sadness are still weak. Say that directly if asked.
 
-- Continuous SER here = dense window predictions over time + timeline tracking.
-- Official evaluation uses utterance/clip labels from the dataset.
-- Contribution = temporal tracking module that builds interpretable emotion timelines.
+What changed:
+
+- Features are log-mel plus delta and delta-delta, not a single spectrogram.
+- Clips are no longer padded out to 6 seconds of silence.
+- Training follows the real MELD class mix, with light label smoothing.
+- The checkpoint used for demo and test is `checkpoints/best_model.pt`.
+- An earlier balanced-sampling run is kept at `checkpoints/best_model_meld_balanced.pt`. It did not raise accuracy.

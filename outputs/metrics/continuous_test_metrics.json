@@ -1,0 +1,193 @@
+{
+  "mode": "continuous_SER_recognition_and_transition_detection",
+  "split": "test",
+  "n_dialogues": 25,
+  "n_utterances": 229,
+  "continuous_recognition_accuracy": 0.49344978165938863,
+  "continuous_recognition_weighted_f1": 0.3575934012615235,
+  "transition_detection": {
+    "precision": 0.3793103448275862,
+    "recall": 0.09649122807017543,
+    "f1": 0.15384615384615383,
+    "tp": 11,
+    "fp": 18,
+    "fn": 103
+  },
+  "per_dialogue": [
+    {
+      "dialogue_id": 0,
+      "n": 3,
+      "acc": 0.3333333333333333,
+      "transition_f1": 0.5,
+      "n_gold_changes": 2
+    },
+    {
+      "dialogue_id": 1,
+      "n": 8,
+      "acc": 0.0,
+      "transition_f1": 0.0,
+      "n_gold_changes": 1
+    },
+    {
+      "dialogue_id": 2,
+      "n": 11,
+      "acc": 0.36363636363636365,
+      "transition_f1": 0.0,
+      "n_gold_changes": 5
+    },
+    {
+      "dialogue_id": 3,
+      "n": 7,
+      "acc": 0.5714285714285714,
+      "transition_f1": 0.0,
+      "n_gold_changes": 5
+    },
+    {
+      "dialogue_id": 4,
+      "n": 9,
+      "acc": 0.3333333333333333,
+      "transition_f1": 0.4,
+      "n_gold_changes": 7
+    },
+    {
+      "dialogue_id": 5,
+      "n": 9,
+      "acc": 0.8888888888888888,
+      "transition_f1": 0.0,
+      "n_gold_changes": 1
+    },
+    {
+      "dialogue_id": 6,
+      "n": 3,
+      "acc": 0.6666666666666666,
+      "transition_f1": 0.0,
+      "n_gold_changes": 1
+    },
+    {
+      "dialogue_id": 7,
+      "n": 9,
+      "acc": 0.7777777777777778,
+      "transition_f1": 0.0,
+      "n_gold_changes": 4
+    },
+    {
+      "dialogue_id": 8,
+      "n": 7,
+      "acc": 0.42857142857142855,
+      "transition_f1": 0.0,
+      "n_gold_changes": 5
+    },
+    {
+      "dialogue_id": 9,
+      "n": 18,
+      "acc": 0.3888888888888889,
+      "transition_f1": 0.125,
+      "n_gold_changes": 14
+    },
+    {
+      "dialogue_id": 10,
+      "n": 4,
+      "acc": 0.75,
+      "transition_f1": 0.0,
+      "n_gold_changes": 1
+    },
+    {
+      "dialogue_id": 11,
+      "n": 5,
+      "acc": 0.6,
+      "transition_f1": 0.0,
+      "n_gold_changes": 2
+    },
+    {
+      "dialogue_id": 12,
+      "n": 20,
+      "acc": 0.4,
+      "transition_f1": 0.19999999999999998,
+      "n_gold_changes": 9
+    },
+    {
+      "dialogue_id": 13,
+      "n": 8,
+      "acc": 0.5,
+      "transition_f1": 0.0,
+      "n_gold_changes": 3
+    },
+    {
+      "dialogue_id": 14,
+      "n": 11,
+      "acc": 0.36363636363636365,
+      "transition_f1": 0.0,
+      "n_gold_changes": 6
+    },
+    {
+      "dialogue_id": 15,
+      "n": 6,
+      "acc": 0.3333333333333333,
+      "transition_f1": 0.0,
+      "n_gold_changes": 2
+    },
+    {
+      "dialogue_id": 16,
+      "n": 10,
+      "acc": 0.8,
+      "transition_f1": 0.0,
+      "n_gold_changes": 3
+    },
+    {
+      "dialogue_id": 17,
+      "n": 33,
+      "acc": 0.5151515151515151,
+      "transition_f1": 0.29411764705882354,
+      "n_gold_changes": 16
+    },
+    {
+      "dialogue_id": 18,
+      "n": 3,
+      "acc": 1.0,
+      "transition_f1": 0.0,
+      "n_gold_changes": 0
+    },
+    {
+      "dialogue_id": 19,
+      "n": 1,
+      "acc": 0.0,
+      "transition_f1": 0.0,
+      "n_gold_changes": 0
+    },
+    {
+      "dialogue_id": 20,
+      "n": 8,
+      "acc": 0.75,
+      "transition_f1": 0.0,
+      "n_gold_changes": 3
+    },
+    {
+      "dialogue_id": 21,
+      "n": 7,
+      "acc": 0.5714285714285714,
+      "transition_f1": 0.0,
+      "n_gold_changes": 3
+    },
+    {
+      "dialogue_id": 22,
+      "n": 22,
+      "acc": 0.36363636363636365,
+      "transition_f1": 0.10526315789473684,
+      "n_gold_changes": 17
+    },
+    {
+      "dialogue_id": 23,
+      "n": 3,
+      "acc": 0.6666666666666666,
+      "transition_f1": 0.0,
+      "n_gold_changes": 1
+    },
+    {
+      "dialogue_id": 24,
+      "n": 4,
+      "acc": 0.5,
+      "transition_f1": 0.0,
+      "n_gold_changes": 3
+    }
+  ]
+}

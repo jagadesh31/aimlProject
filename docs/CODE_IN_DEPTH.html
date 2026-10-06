@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Code Explanation — Continuous SER (In Depth)</title>
+  <style>
+    :root { --bg:#f4f6f8; --card:#fff; --ink:#111827; --muted:#4b5563; --line:#e5e7eb; --accent:#0369a1; --accent2:#0f766e; --code:#0f172a; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:Segoe UI,Arial,sans-serif; background:var(--bg); color:var(--ink); line-height:1.6; }
+    .wrap { display:grid; grid-template-columns:240px 1fr; max-width:1100px; margin:0 auto; min-height:100vh; }
+    nav { position:sticky; top:0; height:100vh; overflow:auto; padding:1rem; background:var(--card); border-right:1px solid var(--line); font-size:0.82rem; }
+    nav a { display:block; color:var(--ink); text-decoration:none; padding:0.3rem 0.45rem; border-radius:6px; }
+    nav a:hover { background:#e0f2fe; color:var(--accent); }
+    main { padding:1.25rem 1.5rem 3rem; }
+    section { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:1rem 1.2rem; margin-bottom:0.85rem; }
+    h1 { margin:0 0 0.5rem; font-size:1.5rem; }
+    h2 { margin:0 0 0.6rem; font-size:1.15rem; color:var(--accent2); border-bottom:2px solid #ccfbf1; padding-bottom:0.35rem; }
+    h3 { margin:0.9rem 0 0.35rem; font-size:0.98rem; color:var(--accent); }
+    p, li { font-size:0.93rem; }
+    .muted { color:var(--muted); }
+    pre { background:var(--code); color:#e2e8f0; padding:0.75rem 0.9rem; border-radius:8px; overflow-x:auto; font-size:0.78rem; line-height:1.45; }
+    code { font-family:Consolas,monospace; background:#f3f4f6; padding:0.1rem 0.3rem; border-radius:4px; font-size:0.86em; }
+    pre code { background:transparent; padding:0; color:inherit; }
+    table { width:100%; border-collapse:collapse; font-size:0.85rem; margin:0.5rem 0; }
+    th, td { border:1px solid var(--line); padding:0.4rem 0.5rem; text-align:left; vertical-align:top; }
+    th { background:#f9fafb; }
+    .flow { background:#f0fdfa; border-left:4px solid var(--accent2); padding:0.6rem 0.8rem; margin:0.6rem 0; border-radius:0 8px 8px 0; }
+    @media (max-width:800px) { .wrap { grid-template-columns:1fr; } nav { height:auto; position:relative; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <strong>Code map</strong><br />
+    <span class="muted">Read in order</span><br /><br />
+    <a href="#overview">Overview</a>
+    <a href="#config">config.py</a>
+    <a href="#audio">audio_utils.py</a>
+    <a href="#features">features.py</a>
+    <a href="#dataset">dataset.py</a>
+    <a href="#cache">cache_build.py</a>
+    <a href="#model">model.py</a>
+    <a href="#train">train.py</a>
+    <a href="#eval">evaluate.py</a>
+    <a href="#infer">infer_timeline.py</a>
+    <a href="#tracking">temporal_tracking.py</a>
+    <a href="#shapes">Tensor shapes</a>
+    <a href="#viva">Code viva lines</a>
+    <br /><br />
+    <a href="LAB_REVIEW_GUIDE.html">← Back to A–Z guide</a>
+  </nav>
+  <main>
+    <section id="overview">
+      <h1>In-depth code explanation</h1>
+      <p class="muted">Project: Continuous Speech Emotion Recognition on <strong>MELD audio</strong>.</p>
+      <div class="flow">
+        <strong>Two execution paths share the same model:</strong><br />
+        (A) <strong>Training / test accuracy</strong> — one MELD utterance → one forward pass → one predicted class vs gold label.<br />
+        (B) <strong>Continuous timeline</strong> — long audio → many 2 s windows → smooth → stable + transition segments.
+      </div>
+      <pre>prepare_meld.py (data)     train.py → best_model.pt     evaluate.py (metrics)
+                                    ↓
+                         infer_timeline.py → temporal_tracking.py → JSON timeline</pre>
+    </section>
+
+    <section id="config">
+      <h2>config.py — single source of truth</h2>
+      <p>All paths and hyperparameters live here so scripts do not hard-code folders.</p>
+      <table>
+        <tr><th>Variable</th><th>Meaning</th></tr>
+        <tr><td><code>AUDIO_DIR</code></td><td><code>data/meld/audio/{train,dev,test}/diaX_uttY.wav</code></td></tr>
+        <tr><td><code>LABEL_DIR</code></td><td>MELD CSVs with Emotion, Dialogue_ID, Utterance_ID</td></tr>
+        <tr><td><code>CACHE_DIR</code></td><td>Precomputed <code>.npy</code> feature files (3×64×T)</td></tr>
+        <tr><td><code>SAMPLE_RATE=16000</code></td><td>16 kHz mono — standard for speech ML</td></tr>
+        <tr><td><code>N_MELS=64</code>, <code>N_FFT=1024</code>, <code>HOP_LENGTH=256</code></td><td>Mel spectrogram STFT settings (~16 ms between frames)</td></tr>
+        <tr><td><code>MIN_DURATION=1.5</code>, <code>MAX_DURATION=6.0</code></td><td>Crop long utterances; pad only very short ones (not full 6 s silence)</td></tr>
+        <tr><td><code>WIN_SEC=2.0</code>, <code>HOP_SEC=1.0</code></td><td>Continuous inference: 2 s window, move 1 s</td></tr>
+        <tr><td><code>EMO2IDX / IDX2EMO</code></td><td>Maps string emotion ↔ class index 0–6</td></tr>
+        <tr><td><code>MIN_CONF=0.35</code></td><td>Below this, isolated window flips may be removed in smoothing</td></tr>
+        <tr><td><code>TRANS_SEC=0.5</code></td><td>Length of a transition segment when emotion changes</td></tr>
+      </table>
+    </section>
+
+    <section id="audio">
+      <h2>src/audio_utils.py — raw sound → numpy array</h2>
+      <h3><code>load_audio(path)</code></h3>
+      <ol>
+        <li>Reads WAV with <code>soundfile</code>.</li>
+        <li>If stereo → average channels to mono.</li>
+        <li>If sample rate ≠ 16 kHz → <code>librosa.resample</code>.</li>
+        <li>Returns <code>float32</code> 1-D array: samples over time.</li>
+      </ol>
+      <h3><code>prepare_waveform(audio)</code> — used before features</h3>
+      <ul>
+        <li>If length &gt; 6 s → keep first 6 s only (<code>MAX_DURATION</code>).</li>
+        <li>If length &lt; 1.5 s → pad zeros at end up to 1.5 s (<code>MIN_DURATION</code>).</li>
+        <li>Why: old code padded every clip to 6 s; the model learned silence, not speech.</li>
+      </ul>
+      <h3><code>extract_wav(mp4, wav)</code></h3>
+      <p>Used in <code>prepare_meld.py</code>: ffmpeg strips video, outputs mono 16 kHz WAV from MELD MP4 clips.</p>
+    </section>
+
+    <section id="features">
+      <h2>src/features.py — waveform → model input</h2>
+      <h3><code>waveform_to_features(audio)</code></h3>
+      <ol>
+        <li><code>melspectrogram</code> — power in 64 mel bands over time.</li>
+        <li><code>power_to_db</code> — log scale (log-mel).</li>
+        <li><code>delta</code> and <code>delta</code> order 2 — how bands change frame-to-frame.</li>
+        <li>Each channel normalized: <code>(x - mean) / std</code>.</li>
+        <li>Stack → shape <strong>(3, 64, T)</strong> where T depends on utterance length.</li>
+      </ol>
+      <h3><code>sliding_windows(audio, sr, win_sec, hop_sec)</code></h3>
+      <p>Generator used only in <code>infer_timeline.py</code>:</p>
+      <ul>
+        <li>Window size = 2 s × 16000 = 32000 samples.</li>
+        <li>Hop = 1 s → overlapping windows.</li>
+        <li>If audio shorter than window → pad once, yield one window at t=0.</li>
+        <li>Extra tail window if the last hop would miss the end.</li>
+      </ul>
+      <h3><code>save_feature_file</code></h3>
+      <p>load WAV → prepare_waveform → features → save <code>.npy</code> for fast training epochs.</p>
+    </section>
+
+    <section id="dataset">
+      <h2>src/dataset.py — MELD PyTorch Dataset</h2>
+      <h3><code>load_split_csv(split)</code></h3>
+      <p>Reads <code>train_sent_emo.csv</code> (or dev/test). Filters to 7 emotions. Builds <code>clip_id</code> like <code>dia0_utt3</code> to match WAV filenames.</p>
+      <h3><code>MeldMelDataset.__getitem__(idx)</code></h3>
+      <ol>
+        <li>Get row → emotion string → <code>label = EMO2IDX[emotion]</code>.</li>
+        <li>Try load <code>data/cache/{split}/{clip_id}.npy</code>.</li>
+        <li>Else: load WAV → prepare_waveform → waveform_to_features → optionally save cache.</li>
+        <li>Return <code>(tensor features, label, clip_id)</code>.</li>
+      </ol>
+      <h3><code>collate_pad(batch)</code></h3>
+      <p>Utterances have different lengths → different T. This function pads all items in a batch to the <strong>max T</strong> in that batch, producing tensor shape <strong>(B, 3, 64, T_max)</strong>. Labels become <code>(B,)</code>.</p>
+    </section>
+
+    <section id="cache">
+      <h2>src/cache_build.py</h2>
+      <p>Before training, builds missing <code>.npy</code> files in parallel (<code>ProcessPoolExecutor</code>, up to 8 workers). Avoids recomputing mel+delta on every epoch (~10k train files).</p>
+    </section>
+
+    <section id="model">
+      <h2>src/model.py — CNNBiLSTM</h2>
+      <h3>Input</h3>
+      <p><code>x</code> shape <strong>(B, 3, 64, T)</strong> — batch, channels (mel/delta/delta2), mel bins, time frames.</p>
+      <h3>SpecAugment (training only)</h3>
+      <p>Randomly zeros small frequency bands and time bands → regularization, harder to overfit.</p>
+      <h3>CNN block (3 stages)</h3>
+      <p>Each stage: Conv2d 3×3 → BatchNorm → ReLU → MaxPool 2×2. Channels 3→32→64→128. Mel height 64 is pooled 3 times: 64→32→16→8 (<code>freq_bins = 8</code>).</p>
+      <h3>Reshape for LSTM</h3>
+      <p>Permute to <code>(B, T', C*F)</code> with <code>T'</code> = time after CNN pools and <code>C*F = 128*8 = 1024</code> per time step.</p>
+      <h3>BiLSTM</h3>
+      <p>2 layers, hidden 128, bidirectional → 256 dims per time step. Reads sequence context inside the clip.</p>
+      <h3>Pooling + classifier</h3>
+      <p><code>0.5 * mean(time) + 0.5 * max(time)</code> → vector 256 → Linear 256→128 → Dropout → Linear 128→7 logits.</p>
+      <h3><code>predict_proba</code></h3>
+      <p><code>eval()</code> + <code>softmax</code> on logits → 7 probabilities summing to 1. Used in timeline inference.</p>
+    </section>
+
+    <section id="train">
+      <h2>scripts/train.py</h2>
+      <h3>Startup</h3>
+      <ul>
+        <li><code>--source meld</code> → <code>MeldMelDataset("train")</code> and <code>("dev")</code>.</li>
+        <li><code>build_cache</code> for train and dev.</li>
+      </ul>
+      <h3>Training options (important for your 49% model)</h3>
+      <table>
+        <tr><th>Flags</th><th>Effect</th></tr>
+        <tr><td><code>--sampler none --loss ce</code></td><td>Natural MELD class mix + CrossEntropy with label_smoothing=0.05 → <strong>best test accuracy (~49%)</strong></td></tr>
+        <tr><td><code>--sampler balanced --loss focal</code> (default)</td><td>Oversample rare classes + focal loss → better minority F1 but lower accuracy</td></tr>
+      </table>
+      <h3><code>run_epoch</code></h3>
+      <ol>
+        <li>Forward: <code>logits = model(mel)</code>.</li>
+        <li>Loss vs true label.</li>
+        <li>Backward + gradient clip max norm 5.</li>
+        <li>Argmax prediction → collect for accuracy / weighted F1.</li>
+      </ol>
+      <h3>Checkpoint</h3>
+      <p>Saves <code>state_dict</code>, emotions list, dev metrics. Best model copied to <code>checkpoints/best_model.pt</code>. Early stop if no improvement for <code>EARLY_STOP_PATIENCE</code> epochs (when using focal path).</p>
+    </section>
+
+    <section id="eval">
+      <h2>scripts/evaluate.py</h2>
+      <p>Loads <code>best_model.pt</code>, runs <strong>one forward pass per utterance</strong> (same as training), no sliding windows. Computes accuracy, weighted F1, confusion matrix → <code>outputs/metrics/test_metrics.json</code>.</p>
+      <p class="muted">This is official MELD-style utterance evaluation. Timeline is not scored here.</p>
+    </section>
+
+    <section id="infer">
+      <h2>scripts/infer_timeline.py — demo path</h2>
+      <h3><code>load_model</code></h3>
+      <p>Rebuild <code>CNNBiLSTM()</code>, load weights, <code>eval()</code> mode.</p>
+      <h3><code>stitch_dialogue(split, dialogue_id)</code></h3>
+      <p>Loads all utterances of one MELD dialogue in order, concatenates audio + 0.15 s silence between turns. Returns long waveform + metadata (gold emotion per turn, text snippet, start/end times).</p>
+      <h3><code>predict_windows</code></h3>
+      <p>For each sliding window: features → batch dim → <code>predict_proba</code> → argmax class + confidence. Lists: times, classes, confs.</p>
+      <h3>Then</h3>
+      <ol>
+        <li><code>majority_smooth(classes, confs)</code> from temporal_tracking.</li>
+        <li><code>build_timeline(times, smooth)</code>.</li>
+        <li><code>format_timeline</code> printed; full JSON saved under <code>outputs/timelines/</code>.</li>
+      </ol>
+    </section>
+
+    <section id="tracking">
+      <h2>src/temporal_tracking.py — your contribution in code</h2>
+      <h3><code>majority_smooth</code></h3>
+      <p>For each window index <code>i</code>:</p>
+      <ul>
+        <li>Look at neighborhood of size <code>k=3</code>.</li>
+        <li>If <code>i</code> is a spike (different from both neighbors) AND <code>conf[i] &lt; MIN_CONF</code> → replace with previous label.</li>
+        <li>Else set to majority vote in the window.</li>
+      </ul>
+      <h3><code>build_timeline</code></h3>
+      <p>Walk smoothed labels. When label changes at time <code>t</code>:</p>
+      <ol>
+        <li>Close stable segment [start, t] for old emotion.</li>
+        <li>Add transition [t, t+0.5] from old → new.</li>
+        <li>Next stable starts at t+0.5.</li>
+      </ol>
+      <p>Finally merge adjacent stable segments with same emotion. <code>TimelineSegment.as_dict()</code> for JSON export.</p>
+    </section>
+
+    <section id="shapes">
+      <h2>Tensor / data shapes cheat sheet</h2>
+      <pre>Raw audio (1 utterance)     : (N_samples,)     e.g. 2.5 s → 40000 samples
+After prepare_waveform      : (N_samples,)     capped/padded
+Features                    : (3, 64, T)
+Batch after collate_pad     : (B, 3, 64, T_max)
+CNN output (internal)       : (B, 128, 8, T')
+LSTM sequence               : (B, T', 1024) in, (B, T', 256) out
+Pooled vector               : (B, 256)
+Logits                      : (B, 7)
+Softmax                     : (B, 7) probabilities
+
+Timeline: one row per 1 s hop (approx), not per sample</pre>
+    </section>
+
+    <section id="viva">
+      <h2>What to say when they point at code</h2>
+      <p><strong>“Where is novelty?”</strong> → <code>temporal_tracking.py</code> + window loop in <code>infer_timeline.py</code>. Not in CNN layers.</p>
+      <p><strong>“Where is MELD?”</strong> → <code>dataset.py</code> reads MELD CSV + <code>data/meld/audio</code> WAVs.</p>
+      <p><strong>“Where is mel spectrogram?”</strong> → <code>features.py</code> <code>waveform_to_features</code>.</p>
+      <p><strong>“Where is accuracy computed?”</strong> → <code>evaluate.py</code> utterance-level argmax vs label.</p>
+      <p><strong>“Why two train modes?”</strong> → balanced+focal for research on rare classes; ce+natural sampling for higher accuracy on imbalanced test set.</p>
+    </section>
+  </main>
+</div>
+</body>
+</html>

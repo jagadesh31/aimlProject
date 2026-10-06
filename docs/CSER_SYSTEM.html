@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CSER System — Continuous Speech Emotion Recognition</title>
+  <style>
+    body { margin:0; font-family:Segoe UI,Arial,sans-serif; background:#0b1220; color:#e8eefc; line-height:1.55; }
+    .wrap { max-width:920px; margin:0 auto; padding:1.4rem; }
+    h1 { margin:0 0 0.35rem; font-size:1.55rem; }
+    .sub { color:#93a4c3; margin-bottom:1rem; }
+    .card { background:#121a2b; border:1px solid #243149; border-radius:14px; padding:1rem 1.15rem; margin:0.75rem 0; }
+    .mod { display:grid; grid-template-columns:88px 1fr; gap:0.75rem; align-items:start; margin:0.55rem 0; padding:0.65rem 0.7rem; background:#0f172a; border-radius:10px; border:1px solid #243149; }
+    .tag { background:#0f766e; color:#fff; font-weight:700; font-size:0.78rem; padding:0.35rem 0.4rem; border-radius:8px; text-align:center; }
+    .say { background:#042f2e; border-left:4px solid #2dd4bf; padding:0.75rem 0.9rem; border-radius:0 10px 10px 0; }
+    table { width:100%; border-collapse:collapse; font-size:0.88rem; }
+    th, td { border:1px solid #243149; padding:0.45rem 0.5rem; text-align:left; vertical-align:top; }
+    th { background:#0f172a; color:#93a4c3; }
+    a { color:#5eead4; }
+    code { background:#1e293b; padding:0.1rem 0.35rem; border-radius:4px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>CSER — Continuous Speech Emotion Recognition</h1>
+    <p class="sub">Present this as a <strong>system with modules</strong>, not a tiny smoother on top of a classifier.</p>
+
+    <div class="say">
+      <strong>Title-aligned definition:</strong><br />
+      Continuous SER means emotion is estimated as a <em>time series over speech</em>, then structured into
+      stable states and change events, with evaluation for both recognition and transition detection —
+      offline and online (causal) modes.
+    </div>
+
+    <div class="card">
+      <h3>CSER modules (say these names)</h3>
+      <div class="mod"><div class="tag">CSER-D</div><div><strong>Data &amp; alignment</strong><br />MELD labels ↔ <code>dia*_utt*.wav</code> audio; dialogue stitching for continuous streams.</div></div>
+      <div class="mod"><div class="tag">CSER-F</div><div><strong>Feature encoder</strong><br />Log-mel + delta + delta-delta (how the voice changes over time).</div></div>
+      <div class="mod"><div class="tag">CSER-M</div><div><strong>Acoustic emotion model</strong><br />CNN + BiLSTM, 7-class utterance SER (base recognizer).</div></div>
+      <div class="mod"><div class="tag">CSER-C</div><div><strong>Continuous inference</strong><br />Dense 2 s / 1 s window predictions over the full dialogue audio.</div></div>
+      <div class="mod"><div class="tag">CSER-T</div><div><strong>Temporal structuring</strong><br />Offline or causal smooth → stable regions → transition events.</div></div>
+      <div class="mod"><div class="tag">CSER-E</div><div><strong>Dual evaluation</strong><br />(1) Utterance accuracy/F1 &nbsp;(2) Continuous recognition &nbsp;(3) Transition detection F1.</div></div>
+    </div>
+
+    <div class="card">
+      <h3>Why this matches the title “Continuous SER”</h3>
+      <table>
+        <tr><th>Normal SER</th><th>Our CSER</th></tr>
+        <tr><td>One clip → one emotion</td><td>Speech stream → emotion over time</td></tr>
+        <tr><td>No change event</td><td>Explicit transitions (emotion change detection)</td></tr>
+        <tr><td>Offline clip batch only</td><td>Offline + <strong>causal/online</strong> mode (<code>--mode causal</code>)</td></tr>
+        <tr><td>Only classification score</td><td>Recognition + transition metrics + timeline output</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>What to open tomorrow</h3>
+      <ol>
+        <li>This page — name the six modules.</li>
+        <li><code>docs/review_demo/results.html</code> — CSER-M results.</li>
+        <li>Timeline pages — CSER-C + CSER-T output.</li>
+        <li>Commands if asked:
+          <pre style="background:#0f172a;padding:0.7rem;border-radius:8px;overflow:auto;font-size:0.8rem;">python scripts/evaluate.py --source meld --split test
+python scripts/evaluate_continuous.py --split test --max-dialogues 30
+python scripts/infer_timeline.py --split test --dialogue-id 0 --mode offline
+python scripts/infer_timeline.py --split test --dialogue-id 0 --mode causal</pre>
+        </li>
+      </ol>
+    </div>
+
+    <div class="say">
+      <strong>If someone says it feels small:</strong><br />
+      “The title is Continuous SER. We implemented the continuous stack end-to-end:
+      stream inference, temporal state/transition modeling, online vs offline modes,
+      and continuous metrics — on top of a trained MELD audio recognizer.”
+    </div>
+
+    <p><a href="FOUR_CONTRIBUTIONS.html">Four contributions</a> · <a href="review_demo/index.html">Demo pack</a> · <a href="LAB_REVIEW_GUIDE.html">A–Z guide</a></p>
+  </div>
+</body>
+</html>

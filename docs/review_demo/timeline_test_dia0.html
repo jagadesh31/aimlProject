@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Emotion Timeline — test_dia0</title>
+  <style>
+    :root { --bg:#0b1220; --card:#121a2b; --ink:#e5eefc; --muted:#93a4c3; --line:#243149; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:Segoe UI,Arial,sans-serif; background:linear-gradient(180deg,#0b1220,#111827); color:var(--ink); }
+    .wrap { max-width:1000px; margin:0 auto; padding:1.25rem; }
+    h1 { margin:0 0 0.25rem; font-size:1.35rem; }
+    .sub { color:var(--muted); margin-bottom:1rem; font-size:0.9rem; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:1rem; margin-bottom:1rem; }
+    .legend { display:flex; flex-wrap:wrap; gap:0.45rem; margin:0.6rem 0 0.9rem; }
+    .chip { font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:999px; color:#fff; }
+    .track { position:relative; height:54px; border-radius:10px; background:#0f172a; overflow:hidden; border:1px solid var(--line); }
+    .seg { position:absolute; top:0; bottom:0; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:600; color:#fff; padding:0 4px; overflow:hidden; white-space:nowrap; border-right:1px solid rgba(255,255,255,0.15); }
+    .seg.transition { opacity:0.75; background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.18) 0 6px,transparent 6px 12px); }
+    .axis { display:flex; justify-content:space-between; color:var(--muted); font-size:0.75rem; margin-top:0.35rem; }
+    table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+    th, td { border-bottom:1px solid var(--line); padding:0.4rem 0.35rem; text-align:left; }
+    th { color:var(--muted); font-weight:600; }
+    .note { color:var(--muted); font-size:0.84rem; }
+    a { color:#5eead4; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Continuous emotion timeline</h1>
+    <p class="sub">Tag: <strong id="tag"></strong> · Duration: <strong id="dur"></strong>s · Built from window predictions → smooth → stable/transition</p>
+    <div class="card">
+      <h3 style="margin:0 0 0.4rem;font-size:1rem;">Predicted timeline (our contribution)</h3>
+      <div class="legend" id="legend"></div>
+      <div class="track" id="track"></div>
+      <div class="axis"><span>0 s</span><span id="endLabel"></span></div>
+    </div>
+    <div class="card" id="goldCard" style="display:none;">
+      <h3 style="margin:0 0 0.4rem;font-size:1rem;">MELD gold utterances (for comparison)</h3>
+      <div class="track" id="goldTrack"></div>
+      <div class="axis"><span>0 s</span><span id="endLabel2"></span></div>
+      <p class="note">Gold is one label per turn. Our timeline is continuous over sliding windows.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 0.5rem;font-size:1rem;">Segments</h3>
+      <table>
+        <thead><tr><th>Start</th><th>End</th><th>Type</th><th>Emotion</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="note"><a href="index.html">← Review demo home</a></p>
+  </div>
+  <script>
+    const data = {"tag": "test_dia0", "duration_sec": 10.6473125, "window_predictions": [{"time": 0.0, "emotion": "neutral", "smoothed": "neutral", "confidence": 0.446}, {"time": 1.0, "emotion": "neutral", "smoothed": "neutral", "confidence": 0.441}, {"time": 2.0, "emotion": "neutral", "smoothed": "neutral", "confidence": 0.341}, {"time": 3.0, "emotion": "neutral", "smoothed": "neutral", "confidence": 0.418}, {"time": 4.0, "emotion": "neutral", "smoothed": "neutral", "confidence": 0.566}, {"time": 5.0, "emotion": "neutral", "smoothed": "neutral", "confidence": 0.347}, {"time": 6.0, "emotion": "anger", "smoothed": "anger", "confidence": 0.288}, {"time": 7.0, "emotion": "anger", "smoothed": "anger", "confidence": 0.249}, {"time": 8.0, "emotion": "neutral", "smoothed": "neutral", "confidence": 0.427}, {"time": 8.65, "emotion": "neutral", "smoothed": "neutral", "confidence": 0.44}], "timeline": [{"start": 0.0, "end": 6.0, "type": "stable", "emotion": "neutral"}, {"start": 6.0, "end": 6.5, "type": "transition", "emotion": "neutral->anger", "from": "neutral", "to": "anger"}, {"start": 6.5, "end": 8.0, "type": "stable", "emotion": "anger"}, {"start": 8.0, "end": 8.5, "type": "transition", "emotion": "anger->neutral", "from": "anger", "to": "neutral"}, {"start": 8.5, "end": 9.65, "type": "stable", "emotion": "neutral"}], "gold_utterances": [{"clip_id": "dia0_utt0", "start": 0.0, "end": 2.2613125, "gold_emotion": "surprise", "utterance": "Why do all you\u2019re coffee mugs have numbers on the bottom?"}, {"clip_id": "dia0_utt1", "start": 2.4113124999999997, "end": 9.174, "gold_emotion": "anger", "utterance": "Oh. That\u2019s so Monica can keep track. That way if one on them is missing, she can be like, \u2018Where\u2019s number 27?!\u2019"}, {"clip_id": "dia0_utt2", "start": 9.324, "end": 10.4973125, "gold_emotion": "neutral", "utterance": "Y'know what?"}]};
+    const COLORS = {"anger": "#dc2626", "disgust": "#7c3aed", "fear": "#57534e", "joy": "#ca8a04", "neutral": "#64748b", "sadness": "#2563eb", "surprise": "#ea580c"};
+    const dur = data.duration_sec || 1;
+    document.getElementById('tag').textContent = data.tag || '';
+    document.getElementById('dur').textContent = dur.toFixed(2);
+    document.getElementById('endLabel').textContent = dur.toFixed(1) + ' s';
+    document.getElementById('endLabel2').textContent = dur.toFixed(1) + ' s';
+    const legend = document.getElementById('legend');
+    Object.keys(COLORS).forEach(e => {
+      const s = document.createElement('span');
+      s.className = 'chip';
+      s.style.background = COLORS[e];
+      s.textContent = e;
+      legend.appendChild(s);
+    });
+    const track = document.getElementById('track');
+    (data.timeline || []).forEach(seg => {
+      const el = document.createElement('div');
+      el.className = 'seg' + (seg.type === 'transition' ? ' transition' : '');
+      const emo = seg.type === 'transition' ? (seg.from + '→' + seg.to) : seg.emotion;
+      const colorKey = seg.type === 'transition' ? (seg.to || 'neutral') : seg.emotion;
+      el.style.left = (100 * seg.start / dur) + '%';
+      el.style.width = Math.max(0.8, 100 * (seg.end - seg.start) / dur) + '%';
+      el.style.backgroundColor = COLORS[colorKey] || '#475569';
+      el.textContent = emo;
+      el.title = seg.start.toFixed(1) + '-' + seg.end.toFixed(1) + 's  ' + emo;
+      track.appendChild(el);
+    });
+    const rows = document.getElementById('rows');
+    (data.timeline || []).forEach(seg => {
+      const tr = document.createElement('tr');
+      const emo = seg.type === 'transition' ? ((seg.from||'') + ' → ' + (seg.to||'')) : seg.emotion;
+      tr.innerHTML = `<td>${seg.start.toFixed(2)}</td><td>${seg.end.toFixed(2)}</td><td>${seg.type}</td><td>${emo}</td>`;
+      rows.appendChild(tr);
+    });
+    if (data.gold_utterances && data.gold_utterances.length) {
+      document.getElementById('goldCard').style.display = 'block';
+      const gt = document.getElementById('goldTrack');
+      data.gold_utterances.forEach(g => {
+        const el = document.createElement('div');
+        el.className = 'seg';
+        el.style.left = (100 * g.start / dur) + '%';
+        el.style.width = Math.max(0.8, 100 * (g.end - g.start) / dur) + '%';
+        el.style.backgroundColor = COLORS[g.gold_emotion] || '#475569';
+        el.textContent = g.gold_emotion;
+        el.title = (g.utterance || '') + ' [' + g.gold_emotion + ']';
+        gt.appendChild(el);
+      });
+    }
+  </script>
+</body>
+</html>

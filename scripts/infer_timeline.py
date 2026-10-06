@@ -22,9 +22,10 @@ import torch
 import config
 from src.audio_utils import load_audio
 from src.dataset import load_split_csv, wav_path_for
-from src.features import sliding_windows, waveform_to_mel
+from src.features import sliding_windows, waveform_to_features
 from src.model import CNNBiLSTM, predict_proba
-from src.temporal_tracking import build_timeline, format_timeline, majority_smooth
+from src.continuous_eval import emotion_flow_summary, score_dialogue_continuous, score_transition_detection
+from src.temporal_tracking import build_timeline, causal_smooth, format_timeline, majority_smooth
 
 
 def load_model(checkpoint: Path, device: torch.device) -> CNNBiLSTM:
@@ -38,8 +39,8 @@ def load_model(checkpoint: Path, device: torch.device) -> CNNBiLSTM:
 def predict_windows(model, audio: np.ndarray, device: torch.device):
     times, classes, confs, probs = [], [], [], []
     for t0, win in sliding_windows(audio, config.SAMPLE_RATE, config.WIN_SEC, config.HOP_SEC):
-        mel = waveform_to_mel(win)
-        mel_t = torch.from_numpy(mel).unsqueeze(0).unsqueeze(0).to(device)
+        mel = waveform_to_features(win)
+        mel_t = torch.from_numpy(mel).unsqueeze(0).to(device)
         p = predict_proba(model, mel_t).squeeze(0).cpu().numpy()
         cls = int(p.argmax())
         times.append(t0)
@@ -91,6 +92,13 @@ def main():
     parser.add_argument("--split", type=str, default="test")
     parser.add_argument("--dialogue-id", type=int, default=None)
     parser.add_argument("--out", type=str, default=None)
+    parser.add_argument(
+        "--mode",
+        type=str,
+        default="offline",
+        choices=["offline", "causal"],
+        help="offline=use future context in smooth; causal=online Continuous SER (past only)",
+    )
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -107,13 +115,18 @@ def main():
         raise SystemExit("Provide --audio or --dialogue-id")
 
     times, classes, confs, probs = predict_windows(model, audio, device)
-    smooth = majority_smooth(classes, confs, k=config.SMOOTH_WINDOW, min_conf=config.MIN_CONF)
+    if args.mode == "causal":
+        smooth = causal_smooth(classes, confs, k=config.SMOOTH_WINDOW, min_conf=config.MIN_CONF)
+    else:
+        smooth = majority_smooth(classes, confs, k=config.SMOOTH_WINDOW, min_conf=config.MIN_CONF)
     segments = build_timeline(times, smooth)
     text = format_timeline(segments)
+    print(f"Continuous SER mode: {args.mode}")
     print(text)
 
     payload = {
         "tag": tag,
+        "mode": args.mode,
         "duration_sec": float(len(audio) / config.SAMPLE_RATE),
         "window_predictions": [
             {
@@ -127,7 +140,34 @@ def main():
         "timeline": [s.as_dict() for s in segments],
         "gold_utterances": gold_meta,
     }
-    out = Path(args.out) if args.out else config.OUTPUT_DIR / f"timeline_{tag}.json"
+    if gold_meta:
+        cont = score_dialogue_continuous(times, smooth, gold_meta, config.EMO2IDX, hop=config.HOP_SEC)
+        trans = score_transition_detection(gold_meta, payload["timeline"], tolerance_sec=1.5)
+        flow = emotion_flow_summary(gold_meta, payload["timeline"])
+        payload["continuous_eval"] = {
+            "n_utterances_scored": cont["n_utterances_scored"],
+            "continuous_utterance_accuracy": cont["continuous_utterance_accuracy"],
+            "details": cont["details"],
+            "transition_detection": {
+                "precision": trans["transition_precision"],
+                "recall": trans["transition_recall"],
+                "f1": trans["transition_f1"],
+                "n_gold_changes": trans["n_gold_changes"],
+                "n_pred_transitions": trans["n_pred_transitions"],
+            },
+            "emotion_flow": flow,
+        }
+        print(
+            f"\nContinuous recognition (window majority vs gold turns): "
+            f"{cont['continuous_utterance_accuracy']:.3f} "
+            f"on {cont['n_utterances_scored']} utterances"
+        )
+        print(
+            f"Transition detection F1: {trans['transition_f1']:.3f} "
+            f"(P={trans['transition_precision']:.3f}, R={trans['transition_recall']:.3f}, "
+            f"gold_changes={trans['n_gold_changes']}, pred={trans['n_pred_transitions']})"
+        )
+    out = Path(args.out) if args.out else config.TIMELINE_DIR / f"timeline_{tag}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     print("\nSaved:", out)

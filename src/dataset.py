@@ -10,8 +10,8 @@ import torch
 from torch.utils.data import Dataset
 
 import config
-from src.audio_utils import load_audio, pad_or_crop
-from src.features import waveform_to_mel
+from src.audio_utils import load_audio, prepare_waveform
+from src.features import waveform_to_features
 
 
 def load_split_csv(split: str) -> pd.DataFrame:
@@ -37,7 +37,6 @@ class MeldMelDataset(Dataset):
         self.split = split
         self.use_cache = use_cache
         self.df = load_split_csv(split)
-        self.target_len = int(config.MAX_DURATION * config.SAMPLE_RATE)
         # Keep only rows with existing audio
         keep = []
         for i, row in self.df.iterrows():
@@ -62,14 +61,13 @@ class MeldMelDataset(Dataset):
         if self.use_cache and cache.exists():
             mel = np.load(cache)
         else:
-            audio = load_audio(wav_path_for(self.split, clip_id))
-            audio = pad_or_crop(audio, self.target_len)
-            mel = waveform_to_mel(audio)
+            audio = prepare_waveform(load_audio(wav_path_for(self.split, clip_id)))
+            mel = waveform_to_features(audio)
             if self.use_cache:
                 cache.parent.mkdir(parents=True, exist_ok=True)
                 np.save(cache, mel)
-        # (1, n_mels, T)
-        mel_t = torch.from_numpy(mel).unsqueeze(0)
+        # (3, n_mels, T) — log-mel, delta, delta-delta
+        mel_t = torch.from_numpy(np.asarray(mel, dtype=np.float32))
         return mel_t, torch.tensor(label, dtype=torch.long), clip_id
 
 
@@ -77,8 +75,9 @@ def collate_pad(batch):
     mels, labels, ids = zip(*batch)
     # pad time dimension to max in batch
     max_t = max(m.shape[-1] for m in mels)
+    channels = mels[0].shape[0]
     n_mels = mels[0].shape[1]
-    out = torch.zeros(len(mels), 1, n_mels, max_t)
+    out = torch.zeros(len(mels), channels, n_mels, max_t)
     for i, m in enumerate(mels):
         out[i, :, :, : m.shape[-1]] = m
     labels_t = torch.stack(labels)

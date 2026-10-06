@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Continuous SER — Review Demo</title>
+  <style>
+    body { margin:0; font-family:Segoe UI,Arial,sans-serif; background:#f7f4ef; color:#1c1917; }
+    .wrap { max-width:860px; margin:0 auto; padding:1.5rem; }
+    .card { background:#fff; border:1px solid #e7e0d6; border-radius:14px; padding:1.1rem 1.2rem; margin-bottom:0.85rem; }
+    h1 { margin:0 0 0.35rem; }
+    a.btn { display:inline-block; margin:0.25rem 0.35rem 0.25rem 0; padding:0.55rem 0.85rem; background:#0f766e; color:#fff; text-decoration:none; border-radius:8px; font-weight:600; }
+    a.btn.secondary { background:#0369a1; }
+    a.btn.ghost { background:#fff; color:#0f766e; border:1px solid #0f766e; }
+    .muted { color:#57534e; }
+    .say { background:#ecfdf5; border-left:4px solid #0f766e; padding:0.7rem 0.85rem; border-radius:0 8px 8px 0; margin:0.6rem 0; }
+    ol, ul { line-height:1.55; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Lab review demo pack</h1>
+    <p class="muted">Lead with the full system — not “we only smoothed labels.”</p>
+
+    <div class="say">
+      <strong>Opening line:</strong> We built an end-to-end Continuous Speech Emotion Recognition system on MELD audio:
+      data pipeline, CNN–BiLSTM acoustic model, dense window recognition, temporal timeline, and dual evaluation.
+    </div>
+
+    <div class="card">
+      <h3>Show these</h3>
+      <a class="btn ghost" href="../CSER_SYSTEM.html">0. CSER system (6 modules)</a>
+      <a class="btn ghost" href="../FOUR_CONTRIBUTIONS.html">0b. Four contributions</a>
+      <a class="btn" href="timeline_demo_sequence.html">1. Timeline visualizer</a>
+      <a class="btn secondary" href="timeline_test_dia0.html">2. Timeline + MELD gold turns</a>
+      <a class="btn" href="results.html">3. Utterance results (34%→49%)</a>
+      <a class="btn ghost" href="../LAB_REVIEW_GUIDE.html">4. A–Z guide</a>
+      <a class="btn ghost" href="../CODE_IN_DEPTH.html">5. Code explanation</a>
+    </div>
+    <div class="card">
+      <h3>Suggested order</h3>
+      <ol>
+        <li><b>Four contributions</b> — list the whole system.</li>
+        <li><b>Results</b> — trained acoustic model, accuracy improvement.</li>
+        <li><b>Timeline pages</b> — continuous recognition output.</li>
+        <li>Code if asked: <code>model.py</code> + <code>infer_timeline.py</code> + <code>temporal_tracking.py</code> + <code>continuous_eval.py</code>.</li>
+      </ol>
+    </div>
+  </div>
+</body>
+</html>

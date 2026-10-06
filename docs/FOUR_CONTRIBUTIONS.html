@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>What We Built — Four Contributions</title>
+  <style>
+    body { margin:0; font-family:Segoe UI,Arial,sans-serif; background:#f4f1ea; color:#1c1917; line-height:1.55; }
+    .wrap { max-width:900px; margin:0 auto; padding:1.4rem; }
+    h1 { margin:0 0 0.4rem; }
+    .card { background:#fff; border:1px solid #e7e0d6; border-radius:14px; padding:1rem 1.15rem; margin:0.8rem 0; }
+    .n { display:inline-block; width:1.6rem; height:1.6rem; border-radius:50%; background:#0f766e; color:#fff; text-align:center; line-height:1.6rem; font-weight:700; margin-right:0.4rem; }
+    .say { background:#ecfdf5; border-left:4px solid #0f766e; padding:0.75rem 0.9rem; border-radius:0 10px 10px 0; }
+    .no { background:#fff7ed; border-left:4px solid #c2410c; padding:0.75rem 0.9rem; border-radius:0 10px 10px 0; }
+    table { width:100%; border-collapse:collapse; font-size:0.9rem; }
+    th, td { border:1px solid #e7e0d6; padding:0.45rem 0.55rem; text-align:left; vertical-align:top; }
+    th { background:#faf7f2; }
+    a { color:#0f766e; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>We did not only do post-processing</h1>
+    <p>Present the project as <strong>four contributions</strong> that form one continuous SER system on MELD audio.</p>
+
+    <div class="no">
+      <strong>Do not say:</strong> “Our novelty is only smoothing labels.”
+    </div>
+    <div class="say">
+      <strong>Say this:</strong><br />
+      “We built an end-to-end Continuous Speech Emotion Recognition system for conversational audio.
+      It includes data preparation on MELD, acoustic modeling, dense window-level recognition,
+      temporal structuring into stable regions and transitions, and two evaluation modes —
+      standard utterance classification and continuous window-to-utterance scoring.”
+    </div>
+
+    <div class="card">
+      <h3><span class="n">1</span> Conversational audio SER pipeline on MELD</h3>
+      <p>Public MELD CSVs only give text + labels. We use the official raw clips, extract mono 16 kHz WAV,
+      map each row to <code>diaX_uttY.wav</code>, and train/evaluate on <strong>speech audio only</strong>.</p>
+      <p><em>Files:</em> <code>prepare_meld.py</code>, <code>dataset.py</code>, <code>data/meld/audio/</code></p>
+    </div>
+
+    <div class="card">
+      <h3><span class="n">2</span> Acoustic model for 7-class emotion</h3>
+      <p>Log-mel + delta + delta-delta features → CNN (local spectral patterns) → BiLSTM (temporal context)
+      → 7 emotions. Training choices matter: clip length handling, class imbalance, checkpoint selection.
+      Utterance test accuracy improved from earlier ~34% to <strong>~49%</strong>.</p>
+      <p><em>Files:</em> <code>features.py</code>, <code>model.py</code>, <code>train.py</code>, <code>evaluate.py</code></p>
+    </div>
+
+    <div class="card">
+      <h3><span class="n">3</span> Continuous-in-time recognition design</h3>
+      <p>This is method design, not a side script. We redefine inference as dense prediction:
+      2-second windows, 1-second hop, over a full dialogue stream (stitched turns).
+      That is what makes SER <strong>continuous</strong>.</p>
+      <p><em>Files:</em> <code>features.sliding_windows</code>, <code>infer_timeline.predict_windows</code>, <code>stitch_dialogue</code></p>
+    </div>
+
+    <div class="card">
+      <h3><span class="n">4</span> Temporal emotion structure + continuous evaluation</h3>
+      <p>Window outputs are structured into stable emotion regions and named transitions
+      (interpretable timeline). We also score continuous predictions against MELD gold turns
+      by majority of windows inside each utterance — so continuous SER is <strong>evaluated</strong>, not only drawn.</p>
+      <p><em>Files:</em> <code>temporal_tracking.py</code>, <code>continuous_eval.py</code>, <code>evaluate_continuous.py</code></p>
+    </div>
+
+    <div class="card">
+      <h3>If mam says “isn’t contribution 4 just post-processing?”</h3>
+      <div class="say">
+        “Contribution 4 is one module. The project contribution is the full continuous SER stack:
+        data-to-model pipeline, continuous window recognition, temporal structure, and dual evaluation.
+        Post-processing alone would not need MELD audio training or window-level modeling.”
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Two evaluation stories (sounds research-like)</h3>
+      <table>
+        <tr><th>Mode</th><th>What</th><th>Where</th></tr>
+        <tr>
+          <td>Utterance SER</td>
+          <td>One clip → one label (standard MELD-style)</td>
+          <td><code>evaluate.py</code> → ~49% acc</td>
+        </tr>
+        <tr>
+          <td>Continuous SER</td>
+          <td>Windows over dialogue → majority vs gold turn</td>
+          <td><code>evaluate_continuous.py</code></td>
+        </tr>
+      </table>
+    </div>
+
+    <p><a href="review_demo/index.html">← Review demo home</a> · <a href="LAB_REVIEW_GUIDE.html">A–Z guide</a></p>
+  </div>
+</body>
+</html>

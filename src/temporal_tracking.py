@@ -32,6 +32,7 @@ class TimelineSegment:
 
 
 def majority_smooth(labels: Sequence[int], conf: Sequence[float], k: int = 3, min_conf: float = 0.35) -> List[int]:
+    """Offline smooth: uses past and future neighbors (non-causal)."""
     labels = list(labels)
     conf = list(conf)
     n = len(labels)
@@ -52,6 +53,34 @@ def majority_smooth(labels: Sequence[int], conf: Sequence[float], k: int = 3, mi
         vals, counts = np.unique(window, return_counts=True)
         out[i] = int(vals[np.argmax(counts)])
     return out
+
+
+def causal_smooth(labels: Sequence[int], conf: Sequence[float], k: int = 3, min_conf: float = 0.35) -> List[int]:
+    """Online / streaming smooth: uses only past and current windows (causal).
+
+    Needed for a real Continuous SER deployment where future audio is not available yet.
+    """
+    labels = list(labels)
+    conf = list(conf)
+    n = len(labels)
+    if n == 0:
+        return []
+    out: List[int] = []
+    for i in range(n):
+        left = max(0, i - (k - 1))
+        window = labels[left : i + 1]
+        if i > 0 and labels[i] != labels[i - 1] and conf[i] < min_conf:
+            out.append(out[-1])
+            continue
+        vals, counts = np.unique(window, return_counts=True)
+        out.append(int(vals[np.argmax(counts)]))
+    return out
+
+
+def change_points(labels: Sequence[int]) -> List[int]:
+    """Indices where the label changes relative to the previous window."""
+    labels = list(labels)
+    return [i for i in range(1, len(labels)) if labels[i] != labels[i - 1]]
 
 
 def build_timeline(

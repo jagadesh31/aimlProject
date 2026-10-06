@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MELD Results Dashboard</title>
+  <style>
+    body { margin:0; font-family:Segoe UI,Arial,sans-serif; background:#f5f3ef; color:#1c1917; }
+    .wrap { max-width:980px; margin:0 auto; padding:1.25rem; }
+    .card { background:#fff; border:1px solid #e7e0d6; border-radius:12px; padding:1rem; margin-bottom:1rem; }
+    h1 { margin:0 0 0.4rem; font-size:1.4rem; }
+    .kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:0.7rem; }
+    .kpi { background:#f0fdfa; border:1px solid #99f6e4; border-radius:10px; padding:0.75rem; }
+    .kpi b { display:block; font-size:1.4rem; color:#0f766e; }
+    img { max-width:100%; border-radius:8px; border:1px solid #e7e0d6; }
+    .muted { color:#57534e; font-size:0.9rem; }
+    a { color:#0f766e; }
+    @media (max-width:700px) { .kpis { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>MELD test results dashboard</h1>
+    <p class="muted">Utterance-level evaluation on 2610 test clips. Audio-only CNN + BiLSTM.</p>
+    <div class="kpis">
+      <div class="kpi"><span>Current accuracy</span><b>49.3%</b></div>
+      <div class="kpi"><span>Current weighted F1</span><b>0.36</b></div>
+      <div class="kpi"><span>Earlier accuracy</span><b>20.5%</b></div>
+    </div>
+    <div class="card">
+      <h3>Improvement vs earlier model</h3>
+      <img src="charts/improvement_bar.png" alt="improvement" />
+      <p class="muted">Neutral-only baseline is about 48% because Neutral is almost half of the test set.</p>
+    </div>
+    <div class="card">
+      <h3>Class imbalance in MELD test</h3>
+      <img src="charts/class_support.png" alt="support" />
+    </div>
+    <div class="card">
+      <h3>Per-class precision / recall / F1</h3>
+      <img src="charts/per_class_metrics.png" alt="per class" />
+      <p class="muted">Neutral and some anger work; minority emotions remain hard for audio-only SER.</p>
+    </div>
+    <div class="card">
+      <h3>Confusion matrix</h3>
+      <img src="charts/confusion_matrix.png" alt="confusion" />
+    </div>
+    <p class="muted"><a href="index.html">← Review demo home</a></p>
+  </div>
+</body>
+</html>

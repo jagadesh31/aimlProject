@@ -17,6 +17,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 import config
+from src.cache_build import build_cache
 from src.dataset import MeldMelDataset, collate_pad
 from src.model import CNNBiLSTM
 
@@ -36,10 +37,12 @@ def main():
 
     if args.source == "meld":
         ds = MeldMelDataset(args.split)
+        build_cache(ds, args.split)
     else:
         from src.manifest_dataset import ManifestMelDataset
 
         ds = ManifestMelDataset(config.DATA_DIR / "ravdess" / "manifest.csv", args.split)
+        build_cache(ds, "ravdess")
     loader = DataLoader(ds, batch_size=32, shuffle=False, collate_fn=collate_pad)
     ys, ps = [], []
     with torch.no_grad():
@@ -54,9 +57,9 @@ def main():
     report = classification_report(ys, ps, target_names=config.EMOTIONS, zero_division=0)
     cm = confusion_matrix(ys, ps).tolist()
     out = {"split": args.split, "accuracy": acc, "weighted_f1": f1, "confusion_matrix": cm}
-    config.OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    (config.OUTPUT_DIR / f"{args.split}_metrics.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
-    (config.OUTPUT_DIR / f"{args.split}_classification_report.txt").write_text(report, encoding="utf-8")
+    config.METRICS_DIR.mkdir(parents=True, exist_ok=True)
+    (config.METRICS_DIR / f"{args.split}_metrics.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
+    (config.METRICS_DIR / f"{args.split}_classification_report.txt").write_text(report, encoding="utf-8")
     print(report)
     print(f"Accuracy={acc:.4f} Weighted-F1={f1:.4f}")
 

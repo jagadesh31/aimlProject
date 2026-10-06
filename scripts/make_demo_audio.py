@@ -19,7 +19,7 @@ import config
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--emotions", type=str, default="neutral,anger,joy")
-    parser.add_argument("--out", type=Path, default=config.OUTPUT_DIR / "demo_sequence.wav")
+    parser.add_argument("--out", type=Path, default=config.DEMO_DIR / "demo_sequence.wav")
     args = parser.parse_args()
 
     manifest = config.DATA_DIR / "ravdess" / "manifest.csv"

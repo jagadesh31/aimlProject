@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Continuous SER — Lab Review Guide (A–Z)</title>
+  <style>
+    :root {
+      --bg: #f7f4ef;
+      --card: #fffdf9;
+      --ink: #1c1917;
+      --muted: #57534e;
+      --line: #e7e0d6;
+      --accent: #0f766e;
+      --accent-soft: #ccfbf1;
+      --warn: #9a3412;
+      --warn-soft: #ffedd5;
+      --good: #166534;
+      --good-soft: #dcfce7;
+      --code: #1e293b;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top right, #efe8dc 0%, transparent 40%),
+        var(--bg);
+      line-height: 1.55;
+    }
+    .wrap {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    nav {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 1.25rem 1rem 2rem;
+      border-right: 1px solid var(--line);
+      background: rgba(255, 253, 249, 0.92);
+    }
+    nav h1 {
+      font-size: 0.95rem;
+      margin: 0 0 0.35rem;
+      letter-spacing: 0.02em;
+    }
+    nav p {
+      margin: 0 0 1rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    nav a {
+      display: block;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 0.84rem;
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      margin-bottom: 0.15rem;
+    }
+    nav a:hover { background: var(--accent-soft); color: var(--accent); }
+    main { padding: 1.5rem 1.75rem 3rem; }
+    header.hero {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1.4rem 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    header.hero h1 {
+      margin: 0 0 0.4rem;
+      font-size: 1.7rem;
+      line-height: 1.25;
+    }
+    header.hero .tag {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      margin-bottom: 0.6rem;
+    }
+    section {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1.2rem 1.35rem 1.35rem;
+      margin-bottom: 1rem;
+    }
+    h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.2rem;
+      border-bottom: 2px solid var(--accent-soft);
+      padding-bottom: 0.4rem;
+    }
+    h3 {
+      margin: 1rem 0 0.4rem;
+      font-size: 1rem;
+      color: var(--accent);
+    }
+    p, li { font-size: 0.95rem; }
+    .muted { color: var(--muted); }
+    .say {
+      background: #ecfeff;
+      border-left: 4px solid var(--accent);
+      padding: 0.7rem 0.9rem;
+      border-radius: 0 8px 8px 0;
+      margin: 0.8rem 0;
+    }
+    .say strong { color: var(--accent); }
+    .warnbox {
+      background: var(--warn-soft);
+      border-left: 4px solid var(--warn);
+      padding: 0.7rem 0.9rem;
+      border-radius: 0 8px 8px 0;
+      margin: 0.8rem 0;
+    }
+    .goodbox {
+      background: var(--good-soft);
+      border-left: 4px solid var(--good);
+      padding: 0.7rem 0.9rem;
+      border-radius: 0 8px 8px 0;
+      margin: 0.8rem 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin: 0.6rem 0 0.2rem;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 0.45rem 0.55rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #f5f0e8; }
+    code, pre {
+      font-family: Consolas, "Courier New", monospace;
+    }
+    code {
+      background: #f1eee8;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.86em;
+    }
+    pre {
+      background: var(--code);
+      color: #e2e8f0;
+      padding: 0.9rem 1rem;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+    .flow {
+      display: grid;
+      gap: 0.45rem;
+      margin: 0.7rem 0;
+    }
+    .flow .step {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 0.6rem;
+      align-items: start;
+      padding: 0.55rem 0.7rem;
+      background: #faf7f2;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .flow .n {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: var(--accent);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+    }
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    @media (max-width: 900px) {
+      .wrap { grid-template-columns: 1fr; }
+      nav {
+        position: relative;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+      }
+      .grid2 { grid-template-columns: 1fr; }
+    }
+    .checklist label {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+      margin: 0.35rem 0;
+      font-size: 0.92rem;
+    }
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <h1>Lab Review Guide</h1>
+      <p>Continuous SER · MELD · A–Z</p>
+      <a href="#position">1. How to position</a>
+      <a href="#problem">2. Problem</a>
+      <a href="#novelty">3. Novelty &amp; contribution</a>
+      <a href="#dataset">4. Dataset (MELD)</a>
+      <a href="#pipeline">5. How it works</a>
+      <a href="#model">6. Model &amp; features</a>
+      <a href="#timeline">7. Timeline module</a>
+      <a href="#code">8. Code map</a>
+      <a href="#demo">9. Demo script</a>
+      <a href="#accuracy">10. Accuracy</a>
+      <a href="#compare">11. Compare with existing</a>
+      <a href="#viva">12. Likely questions</a>
+      <a href="#speak">13. 3-minute speech</a>
+      <a href="#checklist">14. Tomorrow checklist</a>
+      <a href="CODE_IN_DEPTH.html" style="margin-top:0.6rem;background:#e0f2fe;color:#0369a1;font-weight:600;">→ Code in depth (HTML)</a>
+      <a href="review_demo/index.html" style="margin-top:0.35rem;background:#ccfbf1;color:#0f766e;font-weight:600;">→ Visual demo (timeline + charts)</a>
+    </nav>
+
+    <main>
+      <header class="hero">
+        <div class="tag">Open this file in Chrome / Edge · read top to bottom</div>
+        <h1>Continuous Speech Emotion Recognition with Temporal Emotion Tracking</h1>
+        <p class="muted" style="margin:0">
+          Project goal: detect emotion from <strong>voice (audio)</strong>, continuously over time,
+          and show a readable timeline of stable emotions and transitions.
+          Main dataset: <strong>MELD</strong>.
+        </p>
+      </header>
+
+      <section id="position">
+        <h2>1. How to position your project</h2>
+        <p>Do <strong>not</strong> sell this as “best accuracy on MELD.” Sell it as:</p>
+        <div class="goodbox">
+          <strong>Positioning line:</strong><br />
+          “Most SER systems give one emotion for one clip. In conversation, emotion changes.
+          We build a continuous, audio-only pipeline that predicts emotion on sliding windows
+          and converts those predictions into an interpretable timeline of stable regions and transitions.”
+        </div>
+        <table>
+          <tr><th>Do say</th><th>Don’t say</th></tr>
+          <tr>
+            <td>Continuous emotion tracking on speech</td>
+            <td>We read emotion from text</td>
+          </tr>
+          <tr>
+            <td>MELD is the main conversational dataset</td>
+            <td>RAVDESS is our main dataset</td>
+          </tr>
+          <tr>
+            <td>Novelty is the timeline module</td>
+            <td>We invented CNN + BiLSTM</td>
+          </tr>
+          <tr>
+            <td>Accuracy is hard on audio-only MELD; we improved from 34% → 49%</td>
+            <td>We beat SOTA multimodal papers</td>
+          </tr>
+        </table>
+      </section>
+
+      <section id="problem">
+        <h2>2. What problem are we solving?</h2>
+        <h3>Normal SER</h3>
+        <p>One short audio clip → one emotion label (happy / angry / sad…).</p>
+        <h3>Real conversation problem</h3>
+        <p>
+          In a dialogue, mood can stay for a few seconds, then change.
+          One label for the whole recording hides when the change happened.
+          Dumping every window prediction is noisy and hard for a human to read.
+        </p>
+        <h3>Our answer</h3>
+        <ol>
+          <li>Predict emotion every 1 second using 2-second audio windows.</li>
+          <li>Smooth weak / jumping predictions.</li>
+          <li>Group same emotions into <strong>stable</strong> regions.</li>
+          <li>Insert short <strong>transition</strong> markers when emotion changes.</li>
+          <li>Print a clean timeline.</li>
+        </ol>
+        <div class="say">
+          <strong>Say this:</strong>
+          “Continuous SER here means emotion over time from speech audio, not one label for the full file, and not emotion from text.”
+        </div>
+      </section>
+
+      <section id="novelty">
+        <h2>3. Novelty and contribution (present as FOUR parts)</h2>
+        <p><strong>Do not</strong> reduce the project to “we smoothed labels.” Present an <strong>end-to-end continuous SER system</strong>.</p>
+        <ol>
+          <li><strong>MELD audio pipeline</strong> — CSV labels mapped to <code>dia*_utt*</code> WAVs; audio-only SER.</li>
+          <li><strong>Acoustic model</strong> — log-mel+deltas → CNN+BiLSTM; utterance accuracy improved ~34%→~49%.</li>
+          <li><strong>Continuous recognition design</strong> — 2 s / 1 s windows over stitched dialogue (method, not a side script).</li>
+          <li><strong>Temporal structure + continuous eval</strong> — stable/transition timeline; window-majority scored vs gold turns.</li>
+        </ol>
+        <div class="say">
+          <strong>Say this:</strong>
+          “Our contribution is a full continuous speech emotion recognition stack on conversational MELD audio.
+          Temporal tracking is one module; the project also includes data prep, acoustic modeling, dense window inference, and dual evaluation.”
+        </div>
+        <p class="muted">Detail page: <a href="FOUR_CONTRIBUTIONS.html">FOUR_CONTRIBUTIONS.html</a></p>
+      </section>
+
+      <section id="dataset">
+        <h2>4. Dataset — MELD (main)</h2>
+        <p>
+          <strong>MELD</strong> = Multimodal EmotionLines Dataset (Poria et al., ACL 2019).
+          Dialogues from the TV show <em>Friends</em>, multi-party conversations.
+        </p>
+        <table>
+          <tr><th>Item</th><th>Value</th></tr>
+          <tr><td>Dialogues</td><td>~1433</td></tr>
+          <tr><td>Utterances</td><td>&gt; 13,000</td></tr>
+          <tr><td>Train / Dev / Test</td><td>~9989 / ~1109 / ~2610</td></tr>
+          <tr><td>Emotions (7)</td><td>anger, disgust, fear, joy, neutral, sadness, surprise</td></tr>
+          <tr><td>What we use</td><td><strong>Audio only</strong> (MP4 → WAV). Labels for train/eval.</td></tr>
+          <tr><td>What we do not use</td><td>Text and video modalities</td></tr>
+        </table>
+        <h3>What “emotion changes across turns” means</h3>
+        <p>
+          A <strong>dialogue</strong> is one scene. A <strong>turn / utterance</strong> is one spoken line.
+          Each turn has its own emotion label. From turn to turn, the label can change
+          (neutral → anger → surprise). That is emotion changing across turns.
+        </p>
+        <h3>Why not the “continuous” datasets we discussed?</h3>
+        <p>
+          Some continuous-affect datasets need registration / college permission / research agreements
+          (examples often discussed: IEMOCAP license, RECOLA, SEWA). We did not have that access.
+          MELD is public and conversational, so we used MELD and built continuous tracking ourselves.
+        </p>
+        <h3>RAVDESS (only early testing)</h3>
+        <p>
+          Acted speech, one emotion per clip, not conversation.
+          Used only to test the pipeline while MELD was downloading.
+          <strong>For review: dataset = MELD.</strong>
+        </p>
+      </section>
+
+      <section id="pipeline">
+        <h2>5. How it works (full pipeline)</h2>
+        <div class="flow">
+          <div class="step"><div class="n">1</div><div><strong>Audio in</strong><br />MELD utterance WAV at 16 kHz mono, or a long dialogue stitched from turns.</div></div>
+          <div class="step"><div class="n">2</div><div><strong>Features</strong><br />Log-mel spectrogram + delta + delta-delta → 3-channel time–frequency map.</div></div>
+          <div class="step"><div class="n">3</div><div><strong>Classifier</strong><br />CNN extracts local patterns → BiLSTM models time → 7 emotion scores.</div></div>
+          <div class="step"><div class="n">4</div><div><strong>Training mode</strong><br />One utterance → one gold MELD label. Official accuracy/F1 measured here.</div></div>
+          <div class="step"><div class="n">5</div><div><strong>Continuous mode</strong><br />Slide 2 s windows with 1 s hop → many predictions over time.</div></div>
+          <div class="step"><div class="n">6</div><div><strong>Tracking (contribution)</strong><br />Smooth → stable regions → 0.5 s transitions → print timeline.</div></div>
+        </div>
+        <pre>Audio (16 kHz)
+  → log-mel + delta + delta-delta
+    → CNN + BiLSTM
+      → emotion probabilities
+        → [train] one label per utterance
+        → [infer] every 1 s on 2 s windows
+            → smooth weak flips
+              → stable + transition timeline</pre>
+      </section>
+
+      <section id="model">
+        <h2>6. Mel spectrogram, CNN, BiLSTM (explain simply)</h2>
+        <h3>Is this voice or text?</h3>
+        <p><strong>Voice.</strong> We never feed dialogue text into the model.</p>
+        <h3>What is a mel spectrogram?</h3>
+        <p>
+          Yes — it converts audio into <strong>frequency over time</strong>.
+          X-axis = time, Y-axis = frequency bands (mel scale, closer to human hearing),
+          intensity = energy. The model “sees” this like an image.
+        </p>
+        <h3>Delta / delta-delta</h3>
+        <p>
+          How the spectrum <em>changes</em> over time. Helps separate emotions that may look similar
+          in a static average (e.g. joy vs neutral).
+        </p>
+        <h3>CNN</h3>
+        <p>Finds local spectrogram patterns (bursts, pitch bands, roughness).</p>
+        <h3>BiLSTM</h3>
+        <p>
+          Reads the sequence forward and backward so emotion that unfolds across the utterance
+          can use both sides of the clip.
+        </p>
+      </section>
+
+      <section id="timeline">
+        <h2>7. Temporal tracking (the novel part)</h2>
+        <table>
+          <tr><th>Step</th><th>What happens</th></tr>
+          <tr><td>Window detect</td><td>2 s window, 1 s hop → emotion + confidence</td></tr>
+          <tr><td>Smooth</td><td>Local majority; kill isolated low-confidence flips (conf &lt; 0.35)</td></tr>
+          <tr><td>Stable region</td><td>Same emotion lasting as one interval</td></tr>
+          <tr><td>Transition</td><td>0.5 s marker: old emotion → new emotion</td></tr>
+          <tr><td>Output</td><td>Human-readable timeline + JSON</td></tr>
+        </table>
+        <p class="muted">
+          Important: transition is a <em>rule</em>, not a class learned by the network.
+          MELD gold labels are still per utterance, not per half-second.
+        </p>
+        <pre>Example timeline style:
+  0.0–4.0 s   Neutral (stable)
+  4.0–4.5 s   Transition: neutral -> anger
+  4.5–8.0 s   Anger (stable)</pre>
+      </section>
+
+      <section id="code">
+        <h2>8. Code and folder map (what to open if asked)</h2>
+        <pre>config.py                 paths, sample rate, emotions, window sizes
+src/
+  features.py             mel + delta features, sliding windows
+  model.py                CNN + BiLSTM
+  dataset.py              MELD loader
+  temporal_tracking.py    smooth + stable + transition  ← contribution
+  audio_utils.py          load / prepare audio
+scripts/
+  train.py                train on MELD
+  evaluate.py             test accuracy / F1
+  infer_timeline.py       continuous demo / dialogue timeline
+docs/submission/          your 3 PDFs
+checkpoints/best_model.pt current MELD model (49% test)
+outputs/metrics/          score reports
+outputs/timelines/        sample timeline JSON
+data/meld/                labels + audio</pre>
+        <div class="say">
+          <strong>If she asks “show the novelty in code”:</strong>
+          open <code>src/temporal_tracking.py</code> and <code>scripts/infer_timeline.py</code>.
+        </div>
+      </section>
+
+      <section id="demo">
+        <h2>9. Demo — exact commands for tomorrow</h2>
+        <p>Run from project root <code>D:\projects\aiml</code>:</p>
+        <pre># Dialogue timeline (best for review — shows MELD turns)
+python scripts/infer_timeline.py --split test --dialogue-id 0
+
+# Optional short audio demo
+python scripts/infer_timeline.py --audio outputs/demo/demo_sequence.wav
+
+# Numbers (if asked to re-check)
+python scripts/evaluate.py --source meld --split test</pre>
+        <p>
+          Also keep the PDFs ready:
+          <code>docs/submission/01_...</code>, <code>02_Block_Diagram</code>, <code>03_Algorithms_and_Dataset</code>.
+        </p>
+        <div class="warnbox">
+          During demo, explain screen output as:
+          window predictions → smoothed labels → final timeline.
+          If gold utterance lines print under the timeline, say they are MELD’s official turn labels for comparison.
+        </div>
+      </section>
+
+      <section id="accuracy">
+        <h2>10. Accuracy — numbers to quote</h2>
+        <table>
+          <tr><th>Run</th><th>Accuracy</th><th>Weighted F1</th></tr>
+          <tr><td>Earlier model</td><td>0.34 (34%)</td><td>0.29</td></tr>
+          <tr><td><strong>Current model (demo)</strong></td><td><strong>0.49 (49%)</strong></td><td><strong>0.36</strong></td></tr>
+          <tr><td>Always predict Neutral (baseline)</td><td>~0.48</td><td>—</td></tr>
+        </table>
+        <p>Test set size: <strong>2610</strong> utterances. Checkpoint: <code>checkpoints/best_model.pt</code>.</p>
+        <h3>Per-class honesty (current test report)</h3>
+        <ul>
+          <li><strong>Neutral</strong> works best (high recall).</li>
+          <li><strong>Anger</strong> partly recognized.</li>
+          <li><strong>Joy / fear / disgust / sadness</strong> still weak or near zero.</li>
+        </ul>
+        <div class="warnbox">
+          Be honest: audio-only 7-class MELD is hard (imbalance, TV mix, overlapping speech).
+          Our contribution is the continuous timeline, not claiming SOTA classification.
+          We still improved utterance accuracy from 34% → 49%.
+        </div>
+        <div class="say">
+          <strong>Say this:</strong>
+          “We report utterance-level Accuracy and Weighted F1 on MELD test, because that is how the dataset is labeled.
+          The timeline is the continuous product on top of window predictions.”
+        </div>
+      </section>
+
+      <section id="compare">
+        <h2>11. Compare with existing work (how to answer)</h2>
+        <table>
+          <tr><th>Existing work</th><th>They do</th><th>We do differently</th></tr>
+          <tr>
+            <td>Classic SER surveys / papers</td>
+            <td>One label per clip; accuracy/F1</td>
+            <td>Timeline with stable + transition regions</td>
+          </tr>
+          <tr>
+            <td>MELD multimodal baselines</td>
+            <td>Often text + audio (+ video); high scores with text</td>
+            <td>Audio-only; focus on continuous tracking</td>
+          </tr>
+          <tr>
+            <td>RAVDESS-style acted SER</td>
+            <td>Clean acted clips, easier accuracy</td>
+            <td>Conversational MELD; harder, more realistic</td>
+          </tr>
+          <tr>
+            <td>Continuous affect datasets (RECOLA etc.)</td>
+            <td>Dense annotations over time</td>
+            <td>Not available to us; we approximate continuity on MELD</td>
+          </tr>
+        </table>
+        <div class="say">
+          <strong>Comparison closer:</strong>
+          “We are not competing with text-based MELD SOTA. We position against standard audio SER that stops at one label,
+          and we add continuous temporal tracking for interpretability.”
+        </div>
+      </section>
+
+      <section id="viva">
+        <h2>12. Likely viva questions (short answers)</h2>
+        <p><strong>Q. Continuous SER — voice or text?</strong><br />Voice / speech audio only.</p>
+        <p><strong>Q. Mel spectrogram?</strong><br />Time–frequency image of speech energy on mel scale.</p>
+        <p><strong>Q. Dataset?</strong><br />MELD. RAVDESS only for early pipeline test.</p>
+        <p><strong>Q. Novelty?</strong><br /><code>temporal_tracking</code>: smooth + stable + transitions → timeline.</p>
+        <p><strong>Q. Why accuracy ~49%?</strong><br />Audio-only MELD is hard; Neutral ≈48% of test. We beat our old 34% run; minority emotions remain hard.</p>
+        <p><strong>Q. Is timeline ground truth?</strong><br />No. Ground truth is utterance labels. Timeline is an interpretable layer.</p>
+        <p><strong>Q. Emotion changes across turns?</strong><br />Each spoken line has its own label; labels can differ from turn to turn in a dialogue.</p>
+      </section>
+
+      <section id="speak">
+        <h2>13. Ready 3-minute speech</h2>
+        <div class="say">
+          “Ma’am, our project is Continuous Speech Emotion Recognition.
+          Normal SER gives one emotion for one clip. In conversation, emotion changes over time.
+          We use the MELD dataset — Friends dialogues with seven emotions — and we use only audio.
+          First we convert speech to a mel spectrogram with delta features, then a CNN–BiLSTM predicts the emotion.
+          For continuous tracking, we slide a 2-second window every 1 second, smooth weak jumps,
+          and build a timeline of stable emotions and short transitions.
+          That timeline module is our contribution; CNN and BiLSTM are standard support.
+          On MELD test we currently get about 49% accuracy and 0.36 weighted F1, improved from our earlier 34% run.
+          Audio-only MELD is difficult because Neutral dominates. Our aim is interpretable continuous tracking, not multimodal SOTA.
+          I can show the dialogue timeline demo and the block-diagram PDF.”
+        </div>
+      </section>
+
+      <section id="checklist">
+        <h2>14. Tomorrow checklist</h2>
+        <div class="checklist">
+          <label><input type="checkbox" /> Laptop opens <code>D:\projects\aiml</code></label>
+          <label><input type="checkbox" /> Open <code>docs/review_demo/index.html</code> (timeline + charts)</label>
+          <label><input type="checkbox" /> This HTML guide open in browser</label>
+          <label><input type="checkbox" /> PDFs in <code>docs/submission/</code> open</label>
+          <label><input type="checkbox" /> Demo command ready: <code>infer_timeline.py --split test --dialogue-id 0</code></label>
+          <label><input type="checkbox" /> Know: dataset = MELD, novelty = timeline, score = 49% / 0.36 F1</label>
+          <label><input type="checkbox" /> Know: audio only, not text</label>
+          <label><input type="checkbox" /> Honest on class imbalance / minority emotions</label>
+        </div>
+      </section>
+
+      <footer>
+        Continuous SER · MELD · Lab Review Guide · generated for tomorrow’s presentation
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

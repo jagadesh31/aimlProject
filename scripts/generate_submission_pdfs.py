@@ -17,7 +17,7 @@ from reportlab.platypus import (
     Image,
 )
 
-OUT = Path(__file__).resolve().parents[1] / "outputs" / "submission_pdfs"
+OUT = Path(__file__).resolve().parents[1] / "docs" / "submission"
 OUT.mkdir(parents=True, exist_ok=True)
 TITLE = "Continuous Speech Emotion Recognition"
 

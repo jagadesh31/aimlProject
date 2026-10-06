@@ -1,0 +1,183 @@
+{
+  "tag": "test_dia0",
+  "mode": "offline",
+  "duration_sec": 10.6473125,
+  "window_predictions": [
+    {
+      "time": 0.0,
+      "emotion": "neutral",
+      "smoothed": "neutral",
+      "confidence": 0.446
+    },
+    {
+      "time": 1.0,
+      "emotion": "neutral",
+      "smoothed": "neutral",
+      "confidence": 0.441
+    },
+    {
+      "time": 2.0,
+      "emotion": "neutral",
+      "smoothed": "neutral",
+      "confidence": 0.341
+    },
+    {
+      "time": 3.0,
+      "emotion": "neutral",
+      "smoothed": "neutral",
+      "confidence": 0.418
+    },
+    {
+      "time": 4.0,
+      "emotion": "neutral",
+      "smoothed": "neutral",
+      "confidence": 0.566
+    },
+    {
+      "time": 5.0,
+      "emotion": "neutral",
+      "smoothed": "neutral",
+      "confidence": 0.347
+    },
+    {
+      "time": 6.0,
+      "emotion": "anger",
+      "smoothed": "anger",
+      "confidence": 0.288
+    },
+    {
+      "time": 7.0,
+      "emotion": "anger",
+      "smoothed": "anger",
+      "confidence": 0.249
+    },
+    {
+      "time": 8.0,
+      "emotion": "neutral",
+      "smoothed": "neutral",
+      "confidence": 0.427
+    },
+    {
+      "time": 8.65,
+      "emotion": "neutral",
+      "smoothed": "neutral",
+      "confidence": 0.44
+    }
+  ],
+  "timeline": [
+    {
+      "start": 0.0,
+      "end": 6.0,
+      "type": "stable",
+      "emotion": "neutral"
+    },
+    {
+      "start": 6.0,
+      "end": 6.5,
+      "type": "transition",
+      "emotion": "neutral->anger",
+      "from": "neutral",
+      "to": "anger"
+    },
+    {
+      "start": 6.5,
+      "end": 8.0,
+      "type": "stable",
+      "emotion": "anger"
+    },
+    {
+      "start": 8.0,
+      "end": 8.5,
+      "type": "transition",
+      "emotion": "anger->neutral",
+      "from": "anger",
+      "to": "neutral"
+    },
+    {
+      "start": 8.5,
+      "end": 9.65,
+      "type": "stable",
+      "emotion": "neutral"
+    }
+  ],
+  "gold_utterances": [
+    {
+      "clip_id": "dia0_utt0",
+      "start": 0.0,
+      "end": 2.2613125,
+      "gold_emotion": "surprise",
+      "utterance": "Why do all you\u2019re coffee mugs have numbers on the bottom?"
+    },
+    {
+      "clip_id": "dia0_utt1",
+      "start": 2.4113124999999997,
+      "end": 9.174,
+      "gold_emotion": "anger",
+      "utterance": "Oh. That\u2019s so Monica can keep track. That way if one on them is missing, she can be like, \u2018Where\u2019s number 27?!\u2019"
+    },
+    {
+      "clip_id": "dia0_utt2",
+      "start": 9.324,
+      "end": 10.4973125,
+      "gold_emotion": "neutral",
+      "utterance": "Y'know what?"
+    }
+  ],
+  "continuous_eval": {
+    "n_utterances_scored": 3,
+    "continuous_utterance_accuracy": 0.3333333333333333,
+    "details": [
+      {
+        "clip_id": "dia0_utt0",
+        "start": 0.0,
+        "end": 2.26,
+        "gold": "surprise",
+        "pred_from_windows": "neutral",
+        "n_windows": 3,
+        "correct": false
+      },
+      {
+        "clip_id": "dia0_utt1",
+        "start": 2.41,
+        "end": 9.17,
+        "gold": "anger",
+        "pred_from_windows": "neutral",
+        "n_windows": 8,
+        "correct": false
+      },
+      {
+        "clip_id": "dia0_utt2",
+        "start": 9.32,
+        "end": 10.5,
+        "gold": "neutral",
+        "pred_from_windows": "neutral",
+        "n_windows": 1,
+        "correct": true
+      }
+    ],
+    "transition_detection": {
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "n_gold_changes": 2,
+      "n_pred_transitions": 2
+    },
+    "emotion_flow": {
+      "n_gold_turns": 3,
+      "n_gold_unique_emotions": 3,
+      "n_gold_changes": 2,
+      "n_stable_segments": 3,
+      "n_transitions": 2,
+      "pred_emotion_sequence": [
+        "neutral",
+        "anger",
+        "neutral"
+      ],
+      "gold_emotion_sequence": [
+        "surprise",
+        "anger",
+        "neutral"
+      ]
+    }
+  }
+}
