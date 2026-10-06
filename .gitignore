@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+data/raw/
+data/meld_audio/
+data/meld_video/
+data/mel_cache/
+data/ravdess/raw/
+data/ravdess/*.zip
+checkpoints/*.pt
+outputs/*
+!outputs/.gitkeep
+*.log
+.DS_Store
