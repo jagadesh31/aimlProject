@@ -18,7 +18,7 @@ checkpoints/
 outputs/
   metrics/                accuracy, F1, and the older score files
   timelines/              emotion timelines
-  demo/                   short demo wav
+  demo/                   demo_sequence.wav (RAVDESS), test_dia0_stitched.wav (MELD)
 docs/submission/          the three review PDFs
 data/
   meld/labels/            train, dev, test CSVs
@@ -52,6 +52,7 @@ python scripts/train.py --source meld
 python scripts/evaluate.py --source meld --split test
 python scripts/infer_timeline.py --split test --dialogue-id 0
 python scripts/make_demo_audio.py
+python scripts/infer_timeline.py --audio outputs/demo/test_dia0_stitched.wav
 python scripts/infer_timeline.py --audio outputs/demo/demo_sequence.wav
 ```
 

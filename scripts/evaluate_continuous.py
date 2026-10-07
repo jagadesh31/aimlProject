@@ -15,7 +15,8 @@ import torch
 from sklearn.metrics import accuracy_score, classification_report, f1_score
 
 import config
-from scripts.infer_timeline import load_model, predict_windows, stitch_dialogue
+from scripts.infer_timeline import load_model, predict_windows
+from src.dialogue_stitch import stitch_dialogue
 from src.continuous_eval import score_dialogue_continuous, score_transition_detection
 from src.dataset import load_split_csv
 from src.temporal_tracking import build_timeline, majority_smooth
