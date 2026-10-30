@@ -72,7 +72,8 @@ class CNNBiLSTM(nn.Module):
             nn.Linear(128, num_classes),
         )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def embed(self, x: torch.Tensor) -> torch.Tensor:
+        """Pooled BiLSTM summary of one clip, shape (B, 256)."""
         # x: (B, 3, n_mels, T)
         x = self.augment(x)
         h = self.conv(x)
@@ -81,8 +82,10 @@ class CNNBiLSTM(nn.Module):
         out, _ = self.lstm(h)
         mean_pool = out.mean(dim=1)
         max_pool, _ = out.max(dim=1)
-        pooled = 0.5 * (mean_pool + max_pool)
-        return self.fc(pooled)
+        return 0.5 * (mean_pool + max_pool)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.fc(self.embed(x))
 
 
 def predict_proba(model: nn.Module, mel: torch.Tensor) -> torch.Tensor:

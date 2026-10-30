@@ -1,7 +1,9 @@
 {
   "split": "test",
+  "checkpoint": "D:\\projects\\aiml\\checkpoints\\best_model.pt",
   "accuracy": 0.49310344827586206,
   "weighted_f1": 0.36279983639772095,
+  "macro_f1": 0.14180420884104641,
   "confusion_matrix": [
     [
       82,

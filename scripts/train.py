@@ -79,7 +79,8 @@ def run_epoch(model, loader, criterion, optimizer, device, train: bool):
     n = max(len(all_y), 1)
     acc = float(np.mean(np.array(all_y) == np.array(all_p)))
     f1 = f1_score(all_y, all_p, average="weighted", zero_division=0)
-    return total_loss / n, acc, f1, all_y, all_p
+    macro = f1_score(all_y, all_p, average="macro", zero_division=0)
+    return total_loss / n, acc, f1, macro, all_y, all_p
 
 
 def main():
@@ -90,10 +91,25 @@ def main():
     parser.add_argument("--device", type=str, default=None)
     parser.add_argument("--source", type=str, default="meld", choices=["meld", "ravdess"])
     parser.add_argument("--sampler", type=str, default="balanced", choices=["balanced", "none"])
-    parser.add_argument("--loss", type=str, default="focal", choices=["focal", "ce"])
+    parser.add_argument("--loss", type=str, default="focal", choices=["focal", "ce", "wce"])
+    parser.add_argument(
+        "--select",
+        type=str,
+        default=None,
+        choices=["acc", "weighted_f1", "macro_f1"],
+        help="dev metric for keeping the best epoch (default: acc for ce, weighted_f1 otherwise)",
+    )
+    parser.add_argument(
+        "--tag",
+        type=str,
+        default=None,
+        help="save as best_model_<source>_<tag>.pt with tagged metric files; best_model.pt is left alone",
+    )
+    parser.add_argument("--seed", type=int, default=config.SEED)
     args = parser.parse_args()
+    select = args.select or ("acc" if args.loss == "ce" else "weighted_f1")
 
-    set_seed(config.SEED)
+    set_seed(args.seed)
     device = torch.device(args.device if args.device else ("cuda" if torch.cuda.is_available() else "cpu"))
     print("Device:", device)
 
@@ -149,6 +165,11 @@ def main():
     model = CNNBiLSTM().to(device)
     if args.loss == "focal":
         criterion = FocalLoss(weight=torch.tensor(class_w, dtype=torch.float32, device=device), gamma=2.0)
+    elif args.loss == "wce":
+        # Natural class mix, but rare emotions cost more when missed.
+        criterion = nn.CrossEntropyLoss(
+            weight=torch.tensor(class_w, dtype=torch.float32, device=device), label_smoothing=0.05
+        )
     else:
         # Natural class mix. Label smoothing stops the model from collapsing onto one class.
         criterion = nn.CrossEntropyLoss(label_smoothing=0.05)
@@ -157,15 +178,17 @@ def main():
 
     config.CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
     config.METRICS_DIR.mkdir(parents=True, exist_ok=True)
-    best_f1 = -1.0
+    best_score = -1.0
     stall = 0
     history = []
-    ckpt_name = "best_model_meld.pt" if args.source == "meld" else "best_model_ravdess.pt"
-    alias = config.CHECKPOINT_DIR / "best_model.pt"
+    suffix = f"{args.source}_{args.tag}" if args.tag else args.source
+    ckpt_name = f"best_model_{suffix}.pt"
+    alias = None if args.tag else config.CHECKPOINT_DIR / "best_model.pt"
+    print(f"Loss={args.loss} | keep best epoch by dev {select}")
 
     for epoch in range(1, args.epochs + 1):
-        tr_loss, tr_acc, tr_f1, _, _ = run_epoch(model, train_loader, criterion, optimizer, device, True)
-        dv_loss, dv_acc, dv_f1, y_true, y_pred = run_epoch(
+        tr_loss, tr_acc, tr_f1, tr_macro, _, _ = run_epoch(model, train_loader, criterion, optimizer, device, True)
+        dv_loss, dv_acc, dv_f1, dv_macro, y_true, y_pred = run_epoch(
             model, dev_loader, criterion, optimizer, device, False
         )
         scheduler.step()
@@ -178,15 +201,16 @@ def main():
             "dev_loss": dv_loss,
             "dev_acc": dv_acc,
             "dev_f1": dv_f1,
+            "dev_macro_f1": dv_macro,
         }
         history.append(row)
         print(
             f"Epoch {epoch:02d} | train loss {tr_loss:.4f} acc {tr_acc:.3f} f1 {tr_f1:.3f} "
-            f"| dev loss {dv_loss:.4f} acc {dv_acc:.3f} f1 {dv_f1:.3f}"
+            f"| dev loss {dv_loss:.4f} acc {dv_acc:.3f} f1 {dv_f1:.3f} macro-f1 {dv_macro:.3f}"
         )
-        score = dv_acc if args.loss == "ce" else dv_f1
-        if score > best_f1:
-            best_f1 = score
+        score = {"acc": dv_acc, "weighted_f1": dv_f1, "macro_f1": dv_macro}[select]
+        if score > best_score:
+            best_score = score
             stall = 0
             ckpt = {
                 "model": model.state_dict(),
@@ -194,24 +218,28 @@ def main():
                 "epoch": epoch,
                 "dev_f1": dv_f1,
                 "dev_acc": dv_acc,
+                "dev_macro_f1": dv_macro,
                 "source": args.source,
+                "loss": args.loss,
+                "select": select,
                 "in_channels": 3,
             }
             path = config.CHECKPOINT_DIR / ckpt_name
             torch.save(ckpt, path)
-            torch.save(ckpt, alias)
+            if alias is not None:
+                torch.save(ckpt, alias)
             print(f"  saved {path}")
             report = classification_report(y_true, y_pred, target_names=config.EMOTIONS, zero_division=0)
-            (config.METRICS_DIR / f"dev_classification_report_{args.source}.txt").write_text(report, encoding="utf-8")
+            (config.METRICS_DIR / f"dev_classification_report_{suffix}.txt").write_text(report, encoding="utf-8")
         else:
             stall += 1
             if stall >= config.EARLY_STOP_PATIENCE:
-                print(f"Early stop at epoch {epoch} (no dev F1 gain for {stall} epochs)")
+                print(f"Early stop at epoch {epoch} (no dev {select} gain for {stall} epochs)")
                 break
 
-    with open(config.METRICS_DIR / f"train_history_{args.source}.json", "w", encoding="utf-8") as f:
+    with open(config.METRICS_DIR / f"train_history_{suffix}.json", "w", encoding="utf-8") as f:
         json.dump(history, f, indent=2)
-    print("Best dev weighted-F1:", best_f1)
+    print(f"Best dev {select}:", best_score)
 
 
 if __name__ == "__main__":

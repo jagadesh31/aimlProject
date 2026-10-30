@@ -1,0 +1,88 @@
+{
+  "split": "test",
+  "method": "dialogue-context GRU over frozen CNN-BiLSTM features",
+  "feature_checkpoints": [
+    "checkpoints\\best_model_meld_wce.pt"
+  ],
+  "seed": 42,
+  "n_models": 5,
+  "causal": true,
+  "best_epoch": [
+    13,
+    14,
+    3,
+    15,
+    14
+  ],
+  "dev_accuracy": 0.4611913357400722,
+  "dev_accuracy_without_context": 0.40613718411552346,
+  "test_accuracy_without_context": 0.4417624521072797,
+  "accuracy": 0.4992337164750958,
+  "weighted_f1": 0.4030172377442819,
+  "macro_f1": 0.18817238102252526,
+  "confusion_matrix": [
+    [
+      117,
+      0,
+      0,
+      6,
+      201,
+      1,
+      20
+    ],
+    [
+      15,
+      0,
+      0,
+      1,
+      48,
+      0,
+      4
+    ],
+    [
+      6,
+      0,
+      0,
+      2,
+      39,
+      0,
+      3
+    ],
+    [
+      41,
+      0,
+      0,
+      9,
+      319,
+      1,
+      32
+    ],
+    [
+      73,
+      0,
+      0,
+      10,
+      1120,
+      3,
+      50
+    ],
+    [
+      25,
+      0,
+      0,
+      1,
+      170,
+      0,
+      12
+    ],
+    [
+      34,
+      0,
+      0,
+      3,
+      187,
+      0,
+      57
+    ]
+  ]
+}

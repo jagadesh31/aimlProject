@@ -27,6 +27,7 @@ def main():
     parser.add_argument("--checkpoint", type=str, default=str(config.CHECKPOINT_DIR / "best_model.pt"))
     parser.add_argument("--split", type=str, default="test", choices=["train", "dev", "test"])
     parser.add_argument("--source", type=str, default="meld", choices=["meld", "ravdess"])
+    parser.add_argument("--tag", type=str, default=None, help="suffix for metric files, e.g. test_metrics_<tag>.json")
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -54,14 +55,23 @@ def main():
 
     acc = accuracy_score(ys, ps)
     f1 = f1_score(ys, ps, average="weighted", zero_division=0)
+    macro = f1_score(ys, ps, average="macro", zero_division=0)
     report = classification_report(ys, ps, target_names=config.EMOTIONS, zero_division=0)
-    cm = confusion_matrix(ys, ps).tolist()
-    out = {"split": args.split, "accuracy": acc, "weighted_f1": f1, "confusion_matrix": cm}
+    cm = confusion_matrix(ys, ps, labels=list(range(config.NUM_CLASSES))).tolist()
+    out = {
+        "split": args.split,
+        "checkpoint": str(args.checkpoint),
+        "accuracy": acc,
+        "weighted_f1": f1,
+        "macro_f1": macro,
+        "confusion_matrix": cm,
+    }
+    suffix = f"_{args.tag}" if args.tag else ""
     config.METRICS_DIR.mkdir(parents=True, exist_ok=True)
-    (config.METRICS_DIR / f"{args.split}_metrics.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
-    (config.METRICS_DIR / f"{args.split}_classification_report.txt").write_text(report, encoding="utf-8")
+    (config.METRICS_DIR / f"{args.split}_metrics{suffix}.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
+    (config.METRICS_DIR / f"{args.split}_classification_report{suffix}.txt").write_text(report, encoding="utf-8")
     print(report)
-    print(f"Accuracy={acc:.4f} Weighted-F1={f1:.4f}")
+    print(f"Accuracy={acc:.4f} Weighted-F1={f1:.4f} Macro-F1={macro:.4f}")
 
 
 if __name__ == "__main__":

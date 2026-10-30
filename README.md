@@ -62,6 +62,29 @@ python scripts/infer_timeline.py --audio outputs/demo/demo_sequence.wav
 |-----|----------|-------------|--------|
 | First model | 0.34 | 0.29 | `outputs/metrics/test_metrics_previous.json` |
 | Current model | **0.49** | **0.36** | `outputs/metrics/test_metrics.json` |
+| Weighted loss, best epoch by dev macro F1 | 0.48 | **0.41** (macro F1 0.20, was 0.14) | `outputs/metrics/test_metrics_wce.json` |
+| + dialogue context | 0.505 | 0.41 (macro F1 0.20) | `outputs/metrics/test_metrics_context_wce_ens.json` |
+| **+ neutral bias tuned on dev (best)** | **0.507** | **0.41** (macro F1 0.19) | `outputs/metrics/test_metrics_context_wce_ens_tuned.json` |
+| + dialogue context, past turns only | 0.499 | 0.40 | `outputs/metrics/test_metrics_context_wce_ens_causal.json` |
+
+Dialogue context: the CNN-BiLSTM is frozen, and a small GRU reads its per-utterance
+features across the whole MELD scene (plus a same-speaker-as-previous flag from the CSV).
+Five GRUs with different seeds are averaged. Every choice was made on dev accuracy.
+
+```bash
+python scripts/train_dialogue_context.py --checkpoint checkpoints/best_model_meld_wce.pt --n-models 5 --tag context_wce_ens
+python scripts/train_dialogue_context.py --checkpoint checkpoints/best_model_meld_wce.pt --n-models 5 --tune-neutral --tag context_wce_ens_tuned
+```
+
+Averaging four CNN-BiLSTM copies trained with different seeds (`best_model_meld_wce_s1..s3.pt`)
+scored lower on dev, so it is not used.
+
+The weighted-loss model is trained with:
+
+```bash
+python scripts/train.py --source meld --sampler none --loss wce --select macro_f1 --tag wce --epochs 20
+python scripts/evaluate.py --source meld --split test --checkpoint checkpoints/best_model_meld_wce.pt --tag wce
+```
 
 Always guessing neutral scores about **0.48**, because neutral is almost half of MELD test. The current model is just above that line. Neutral recall is high. Anger is partly recognized. Joy, fear, disgust, and sadness are still weak. Say that directly if asked.
 
